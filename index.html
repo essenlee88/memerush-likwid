@@ -342,7 +342,19 @@
       Likwid 是部署在 BSC 的去中心化 AMM 协议，<strong>已上线 <a href="https://docs.likwid.fi/product/contract-address" target="_blank" style="color:#60a5fa;text-decoration:none;"><code>LikwidVault</code> + <code>LikwidMarginPosition</code></a></strong> 合约，支持任何已有 Vault 的 Token 做最高 5× 隔离保证金杠杆交易。MemeRush 毕业代币需<strong>单独接入 Likwid Vault</strong> 才能支持杠杆交易，初期覆盖范围有限；验证阶段以少量代币起步，证明需求后再扩大覆盖。<br><br>
       更关键的是：<strong>合约（margin trading）是圈内用户的母语</strong>。Margin Level、PnL、加减仓、清算价是他们每天在 Binance 合约上做的事，<strong>学习成本为零</strong>。我们做的不是引入新机制，而是第一次给 BSC Meme 用户提供「做空 / 对冲」的能力。<br><br>
       结论：<strong>链上合约层无需自建</strong>——Likwid 合约已部署、已审计，不需要写一行 Solidity。前端集成复杂度取决于 MemeRush 现有 LiquidMesh 交易框架的兼容性，<strong>需要评估交易兼容方案后才能确认工期</strong>（详见风险 #1）。<br><br>
-      <span style="color:#64748b;">→ <a href="likwid_analysis.html" style="color:#60a5fa;text-decoration:none;">Likwid 协议深度分析报告</a>（合约机制、Vault 结构、与 alt.fun 对比）</span>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;color:#60a5fa;font-size:13px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none;" onclick="this.parentElement.querySelector('iframe').src=this.parentElement.querySelector('iframe').src">
+          <span style="font-size:10px;color:#3b82f6;transition:transform .2s;" class="analysis-arrow">▶</span>
+          Likwid 协议深度分析报告（合约机制、Vault 结构、多空使用条件）
+        </summary>
+        <iframe src="likwid_analysis.html" style="width:100%;height:700px;border:none;border-radius:10px;margin-top:10px;display:block;" title="Likwid 协议分析" loading="lazy"></iframe>
+      </details>
+      <script>
+        document.querySelector('.analysis-arrow') && document.querySelector('details').addEventListener('toggle', function(e){
+          const arrow = this.querySelector('.analysis-arrow');
+          if(arrow) arrow.style.transform = this.open ? 'rotate(90deg)' : '';
+        });
+      </script>
     </div>
   </div>
 
