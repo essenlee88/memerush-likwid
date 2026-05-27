@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Likwid DEX 深度分析</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom: 1px solid #2d3748; padding: 48px 40px 40px; }
+  .hero h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .hero .sub { color: #718096; font-size: 14px; }
+  .hero .tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+  .tag.blue { border-color: #3b82f6; color: #60a5fa; }
+  .tag.purple { border-color: #8b5cf6; color: #a78bfa; }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px; }
+  h2 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 48px 0 20px; padding-left: 14px; border-left: 3px solid #3b82f6; }
+  h3 { font-size: 15px; font-weight: 600; color: #cbd5e1; margin: 28px 0 12px; }
+  p { color: #94a3b8; margin-bottom: 12px; font-size: 14px; }
+  .table-wrap { overflow-x: auto; margin: 16px 0 24px; border-radius: 8px; border: 1px solid #1e293b; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: #1a2035; }
+  thead th { padding: 12px 16px; text-align: left; color: #64748b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #1e293b; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid #151c2a; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #131929; }
+  td { padding: 11px 16px; color: #94a3b8; vertical-align: top; }
+  td strong { color: #e2e8f0; font-weight: 600; }
+  td code, span code { background: #1e293b; color: #7dd3fc; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'SF Mono', Monaco, monospace; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .card { background: #131929; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; }
+  .card-icon { font-size: 22px; margin-bottom: 10px; }
+  .card h4 { color: #e2e8f0; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 12px; color: #64748b; margin: 0; }
+  .formula { background: #0d1424; border: 1px solid #1e3a5f; border-radius: 8px; padding: 20px 24px; margin: 20px 0; text-align: center; }
+  .formula .eq { font-size: 22px; color: #60a5fa; font-family: 'SF Mono', monospace; font-weight: 600; letter-spacing: 2px; }
+  .formula .desc { margin-top: 14px; display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+  .formula .desc span { font-size: 12px; color: #64748b; }
+  .flow { margin: 20px 0; }
+  .step { display: flex; gap: 16px; margin-bottom: 4px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: #1e3a5f; border: 1px solid #3b82f6; color: #60a5fa; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-body { flex: 1; padding-bottom: 20px; border-bottom: 1px dashed #1e293b; }
+  .step:last-child .step-body { border-bottom: none; }
+  .step-title { color: #e2e8f0; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .step-desc { color: #64748b; font-size: 13px; }
+  .state-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .state-box { background: #0d1424; border-radius: 8px; padding: 16px; }
+  .state-box.before { border: 1px solid #374151; }
+  .state-box.after { border: 1px solid #1e4d2b; }
+  .state-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .state-box.before .state-label { color: #6b7280; }
+  .state-box.after .state-label { color: #34d399; }
+  .state-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #151c2a; }
+  .state-row:last-child { border-bottom: none; }
+  .state-key { color: #64748b; font-family: monospace; }
+  .state-val { color: #e2e8f0; font-family: monospace; font-weight: 600; }
+  .state-val.changed { color: #34d399; }
+  .state-val.bad { color: #f87171; }
+  .callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 13px; }
+  .callout.info { background: #0c1a2e; border: 1px solid #1e3a5f; color: #7dd3fc; }
+  .callout.warn { background: #1c1404; border: 1px solid #78350f; color: #fbbf24; }
+  .callout > strong:first-child { display: block; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; }
+  .callout strong { font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: #052e16; color: #4ade80; border: 1px solid #14532d; }
+  .badge.red { background: #1c0404; color: #f87171; border: 1px solid #7f1d1d; }
+  .badge.yellow { background: #1c1404; color: #fbbf24; border: 1px solid #78350f; }
+  .spiral { background: #130c0c; border: 1px solid #7f1d1d; border-radius: 10px; padding: 24px; margin: 24px 0; }
+  .spiral h4 { color: #f87171; font-size: 14px; margin-bottom: 16px; }
+  .spiral-step { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; }
+  .spiral-arrow { color: #ef4444; font-size: 16px; }
+  .spiral-text { font-size: 13px; color: #fca5a5; }
+  footer { text-align: center; padding: 32px; color: #374151; font-size: 12px; border-top: 1px solid #1a2035; }
+  details { margin: 10px 0; border-radius: 8px; border: 1px solid #1e293b; overflow: hidden; }
+  details summary { padding: 12px 16px; cursor: pointer; color: #94a3b8; font-size: 13px; background: #0d1424; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: '▶'; font-size: 10px; color: #3b82f6; transition: transform 0.2s; flex-shrink: 0; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details[open] summary { border-bottom: 1px solid #1e293b; color: #e2e8f0; }
+  details .details-body { padding: 20px; background: #080d18; font-size: 13px; }
+  details .details-body p { color: #64748b; font-size: 13px; }
+  details .details-body ul { padding-left: 20px; margin: 8px 0; }
+  details .details-body li { color: #94a3b8; margin-bottom: 6px; line-height: 1.6; }
+  details .details-body strong { color: #e2e8f0; }
+  .src-link { font-size: 12px; font-weight: 400; color: #3b82f6; text-decoration: none; margin-left: 8px; }
+  .src-link:hover { text-decoration: underline; }
+  /* 角色相关性标签 */
+  .role-pills { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:-6px 0 18px 0; font-size:12px; }
+  .role-pills .role-pills-label { color:#6b7280; margin-right:2px; font-size:11px; letter-spacing:.5px; }
+  .role-pill { display:inline-flex; align-items:center; padding:3px 9px; border-radius:999px; background:#131929; border:1px solid rgba(148,163,184,.15); color:#cbd5e1; font-size:11.5px; white-space:nowrap; }
+  .role-pill.primary { background:rgba(59,130,246,.12); border-color:rgba(59,130,246,.4); color:#93c5fd; }
+  .role-pill.secondary { background:rgba(139,92,246,.10); border-color:rgba(139,92,246,.3); color:#c4b5fd; }
+  /* 第0章生态流向图 */
+  .ecosystem-map { background:linear-gradient(180deg,#0f1117 0%,#0d1424 100%); border:1px solid rgba(148,163,184,.12); border-radius:12px; padding:24px 20px; margin:18px 0 22px 0; }
+  .ecosystem-row { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:stretch; }
+  .ecosystem-col { display:flex; flex-direction:column; gap:10px; }
+  .eco-actor { background:#131929; border:1px solid rgba(148,163,184,.18); border-radius:8px; padding:10px 12px; font-size:13px; color:#e5e7eb; display:flex; flex-direction:column; gap:2px; }
+  .eco-actor .eco-actor-title { font-weight:600; font-size:13px; }
+  .eco-actor .eco-actor-sub { font-size:11.5px; color:#94a3b8; }
+  .eco-actor.lp { border-left:3px solid #22c55e; }
+  .eco-actor.lender { border-left:3px solid #8b5cf6; }
+  .eco-actor.spot { border-left:3px solid #3b82f6; }
+  .eco-actor.arb { border-left:3px solid #06b6d4; }
+  .eco-actor.lev { border-left:3px solid #f97316; }
+  .eco-actor.liq { border-left:3px solid #f87171; }
+  .eco-vault { background:radial-gradient(circle at 50% 0%,rgba(59,130,246,.18) 0%,rgba(15,17,23,.6) 70%); border:1px solid rgba(59,130,246,.4); border-radius:10px; padding:14px 16px; min-width:200px; display:flex; flex-direction:column; gap:10px; align-items:center; justify-content:center; }
+  .eco-vault-title { font-size:13px; font-weight:700; color:#93c5fd; letter-spacing:.5px; }
+  .eco-vault-layer { width:100%; background:#0f1117; border:1px solid rgba(148,163,184,.15); border-radius:6px; padding:8px 10px; font-size:12px; color:#cbd5e1; text-align:center; }
+  .eco-vault-layer.amm { border-color:rgba(34,197,94,.35); color:#86efac; }
+  .eco-vault-layer.lend-layer { border-color:rgba(139,92,246,.35); color:#c4b5fd; }
+  .eco-mirror { font-size:10.5px; color:#64748b; letter-spacing:.5px; margin:-4px 0; }
+  .eco-arrow { display:flex; align-items:center; justify-content:center; padding:4px 0; }
+  .eco-arrow.right::after { content:"→"; font-size:22px; color:#3b82f6; }
+  .eco-arrow.left::after { content:"←"; font-size:22px; color:#3b82f6; }
+  .ecosystem-bottom { margin-top:18px; padding-top:16px; border-top:1px dashed rgba(148,163,184,.2); display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+  .ecosystem-trigger { font-size:12px; color:#fca5a5; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.3); padding:6px 12px; border-radius:6px; }
+  .ecosystem-bottom .down-arrow { color:#f87171; font-size:18px; }
+  @media (max-width:760px) { .ecosystem-row { grid-template-columns:1fr; } .eco-arrow.right::after { content:"↓"; } .eco-arrow.left::after { content:"↑"; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div style="max-width:960px;margin:0 auto;">
+    <h1>Likwid DEX v2.2 — Mirror Reserves &amp; liquidateBurn 深度解析</h1>
+    <p class="sub">基于官方白皮书的技术机制分析 · 2026-05-22</p>
+    <div class="tags">
+      <span class="tag blue">Mirror Reserves</span>
+      <span class="tag blue">liquidateBurn</span>
+      <span class="tag purple">AMM 扩展公式</span>
+      <span class="tag purple">合成仓位</span>
+      <span class="tag">DeFi 深度研究</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <h2>零、生态参与者全景图</h2>
+  <div class="role-pills">
+    <span class="role-pills-label">本章面向</span>
+    <span class="role-pill primary">所有读者</span>
+    <span class="role-pill">PM / 研究员</span>
+  </div>
+  <p>在深入 Mirror Reserves 等技术机制之前，先把 Likwid Vault 周围的 <strong style="color:#93c5fd;">六类生态参与者</strong>、各自的资金流向和触发清算的边界条件梳理清楚。读后续章节时可以随时回来对照。</p>
+
+  <div class="ecosystem-map">
+    <div class="ecosystem-row">
+      <div class="ecosystem-col">
+        <div class="eco-actor lp">
+          <span class="eco-actor-title">🧑‍🌾 双边 LP</span>
+          <span class="eco-actor-sub">注入 ETH + USDT 配对资金</span>
+        </div>
+        <div class="eco-actor lender">
+          <span class="eco-actor-title">💰 单边出借者</span>
+          <span class="eco-actor-sub">注入单币种（仅 USDT 或仅 ETH）</span>
+        </div>
+      </div>
+      <div class="ecosystem-col" style="justify-content:center;">
+        <div class="eco-arrow right"></div>
+        <div class="eco-vault">
+          <div class="eco-vault-title">LIKWID VAULT（单池）</div>
+          <div class="eco-vault-layer amm">AMM 流动性曲线<br><span style="color:#64748b;font-size:10.5px;">swap 对手方</span></div>
+          <div class="eco-mirror">⇅ Mirror Reserves ⇅</div>
+          <div class="eco-vault-layer lend-layer">借贷池<br><span style="color:#64748b;font-size:10.5px;">杠杆资金来源</span></div>
+        </div>
+        <div class="eco-arrow left"></div>
+      </div>
+      <div class="ecosystem-col">
+        <div class="eco-actor spot">
+          <span class="eco-actor-title">🔄 现货交易者</span>
+          <span class="eco-actor-sub">支付 swap 费 + 动态费率</span>
+        </div>
+        <div class="eco-actor arb">
+          <span class="eco-actor-title">🤖 套利者</span>
+          <span class="eco-actor-sub">收敛 Vault 价格 ↔ 外部市场</span>
+        </div>
+        <div class="eco-actor lev">
+          <span class="eco-actor-title">📈 杠杆交易者</span>
+          <span class="eco-actor-sub">付保证金 → 借资金 → 付利息 + 资金费</span>
+        </div>
+      </div>
+    </div>
+    <div class="ecosystem-bottom">
+      <span class="ecosystem-trigger">⚠️ 仓位健康度 ML &lt; 阈值</span>
+      <span class="down-arrow">→</span>
+      <div class="eco-actor liq" style="margin:0;">
+        <span class="eco-actor-title">⚡ 清算人介入</span>
+        <span class="eco-actor-sub">liquidateBurn（首选）/ liquidateCall（垫资）</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>角色</th><th>投入</th><th>收益来源</th><th>主要风险</th><th>重点章节</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span style="color:#86efac;">🧑‍🌾 双边 LP</span></td><td>ETH + USDT 配对</td><td>swap 费（含杠杆开平仓产生的 swap 费）</td><td>IL、流动性深度风险</td><td><span class="tag blue">一</span> <span class="tag blue">六</span></td></tr>
+        <tr><td><span style="color:#c4b5fd;">💰 单边出借者</span></td><td>单币种</td><td>借贷利息</td><td>利用率波动、坏账</td><td><span class="tag blue">六</span></td></tr>
+        <tr><td><span style="color:#fdba74;">📈 杠杆交易者</span></td><td>保证金</td><td>价格方向收益</td><td>清算、资金费率</td><td><span class="tag blue">二</span> <span class="tag blue">三</span></td></tr>
+        <tr><td><span style="color:#fca5a5;">⚡ 清算人</span></td><td>Gas（+ 清算资金）</td><td>清算奖励</td><td>MEV 竞争</td><td><span class="tag blue">三</span> <span class="tag blue">四</span> <span class="tag blue">五</span></td></tr>
+        <tr><td><span style="color:#93c5fd;">🔄 现货交易者</span></td><td>swap 输入</td><td>—</td><td>滑点、动态费率</td><td><span class="tag blue">七</span></td></tr>
+        <tr><td><span style="color:#67e8f9;">🤖 套利者</span></td><td>资金</td><td>跨场所价差</td><td>Gas、动态费率反制</td><td><span class="tag blue">七</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>一、Mirror Reserves（镜像储备金）<a href="https://docs.likwid.fi/whitepaper/amm-and-liquidity/mirror-reserves" target="_blank" class="src-link">↗ 原文</a></h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">🧑‍🌾 双边 LP ⭐⭐⭐</span><span class="role-pill secondary">📈 杠杆交易者 ⭐⭐</span><span class="role-pill">💰 单边出借者 ⭐⭐</span></div>
+
+  <h3>直觉理解：金库的"欠条账本"</h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🏦</div>
+      <h4>real reserves</h4>
+      <p>合约实际持有的 token 数量<br>——金库里的黄金</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h4>mirror reserves</h4>
+      <p>已借出但未归还的虚拟记账值<br>——金库开出的黄金欠条</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>lend reserves</h4>
+      <p>单边出借者存入的资金<br>——存款人的账户余额</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>为什么需要 Mirror Reserves？</strong>
+    在不铸造 ERC-20 合成 token 的前提下，通过在账本上增减 mirror 值，维持恒等式成立，从而精确追踪所有杠杆/借贷头寸的净敞口，同时节省 gas，保持系统自包含。
+  </div>
+
+  <h3>扩展版 AMM 恒等式</h3>
+
+  <div class="formula">
+    <div class="eq">( x + x' ) × ( y + y' ) = k</div>
+    <div class="desc">
+      <span><code>x</code> real ETH 储备</span>
+      <span><code>x'</code> mirror ETH（欠条）</span>
+      <span><code>y</code> real USDT 储备</span>
+      <span><code>y'</code> mirror USDT（欠条）</span>
+    </div>
+  </div>
+
+  <h3>与传统 AMM Real Reserves 的本质区别</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>特征</th><th>Real Reserves（Uniswap V2 风格）</th><th>Mirror Reserves（Likwid）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>本质</strong></td><td>池中<strong>实际存在</strong>的可交易 token</td><td>账本记载的<strong>已借出、未归还</strong>的虚拟数值</td></tr>
+        <tr><td><strong>物理存在</strong></td><td>有，是合约地址持有的真实余额</td><td>无，是协议内部状态变量中的数字</td></tr>
+        <tr><td><strong>经济含义</strong></td><td>代表池的即时兑付能力（流动性深度）</td><td>代表协议对 LP 的<strong>债务</strong>，以及杠杆交易者的风险敞口</td></tr>
+        <tr><td><strong>变动驱动</strong></td><td>用户交易、添加/移除流动性</td><td>借贷发生/偿还、杠杆仓位开立/关闭（含清算）</td></tr>
+        <tr><td><strong>可提取性</strong></td><td>LP 可按份额随时赎回</td><td>不可直接赎回，债务偿还时自动减少</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>二、开仓 → 平仓全流程数字演示（空头示例）<a href="https://docs.likwid.fi/whitepaper/amm-and-liquidity/vault" target="_blank" class="src-link">↗ Vault 原文</a></h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">📈 杠杆交易者 ⭐⭐⭐</span><span class="role-pill">🧑‍🌾 双边 LP ⭐⭐</span></div>
+
+  <p>假设 ETH/USDT 池，初始 1 ETH = 1 USDT，k = 1,000,000，忽略手续费。<br>
+  Alice 看空 ETH，存入 100 ETH 抵押，开 2x 空头（借出同等 ETH 卖出，押注 ETH 下跌后低价买回还债获利）。</p>
+
+  <div class="callout info" style="font-size:12px; padding:12px 16px;">
+    <strong>每做空不同 token 都需要单独保证金吗？</strong>
+    <p style="margin:0;">是的。Likwid 是<strong>隔离保证金（Isolated Margin）</strong>模型——每个 Vault 对应一个交易对（ETH/USDT、SOL/USDT 分别是独立 Vault），仓位以 NFT 绑定在特定 Vault 内。做空 ETH 需要将抵押品存入 ETH Vault，做空 SOL 需要存入 SOL Vault，两者不共用保证金。优势：单个 Vault 的风险不传染其他 Vault；代价：资本效率低于 CEX 的统一保证金账户。</p>
+  </div>
+
+  <h3>初始状态</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>变量</th><th>值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>real_x</code></td><td>1000 ETH</td><td>池中真实 ETH</td></tr>
+        <tr><td><code>real_y</code></td><td>1000 USDT</td><td>池中真实 USDT</td></tr>
+        <tr><td><code>mirror_x / mirror_y</code></td><td>0 / 0</td><td>无杠杆仓位，欠条为零</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Alice 存入 100 ETH，开 2x 空头 ETH</h3>
+
+  <div class="flow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">存入抵押品</div>
+        <div class="step-desc"><code>real_x</code> +100 → 变为 1100 ETH。k 更新为 1,100,000</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">协议借出 100 ETH（信用创造）</div>
+        <div class="step-desc"><code>real_x</code> 划出 100 ETH → 变回 1000。同时 <code>mirror_x</code> <span style="color:#f87171;font-weight:bold;">+100</span>（ETH 债务欠条上账）</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">卖出 200 ETH 换取 USDT（内部 swap）</div>
+        <div class="step-desc">200 ETH 进池，根据 AMM 公式换出约 83.3 USDT。<code>real_x</code> → 1200，<code>real_y</code> → 916.7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="min-width:130px">变量</th><th style="min-width:80px">初始</th><th style="min-width:110px">步骤1<br><span style="font-weight:400;font-size:11px;color:#64748b;">存入抵押品</span></th><th style="min-width:110px">步骤2<br><span style="font-weight:400;font-size:11px;color:#64748b;">借出ETH</span></th><th style="min-width:140px">步骤3（最终）<br><span style="font-weight:400;font-size:11px;color:#64748b;">卖出200ETH</span></th></tr></thead>
+      <tbody>
+        <tr><td><code>real_x</code> (ETH)</td><td>1000</td><td>1100</td><td>1000</td><td><strong>1200</strong></td></tr>
+        <tr><td><code>real_y</code> (USDT)</td><td>1000</td><td>1000</td><td>1000</td><td><strong>916.7</strong></td></tr>
+        <tr><td><code>mirror_x</code></td><td>0</td><td>0</td><td style="color:#f87171;font-weight:bold;">100</td><td><strong style="color:#f87171;">100 ← ETH 债务欠条</strong></td></tr>
+        <tr style="background:#0c1a2e;">
+          <td><strong style="color:#60a5fa;">池内 ETH 价格</strong><br><span style="font-size:11px;color:#64748b;">real_y ÷ real_x</span></td>
+          <td style="color:#60a5fa;font-weight:700;">1.000</td>
+          <td style="color:#f87171;font-weight:700;">0.909 ↓<br><span style="font-size:11px;color:#64748b;">ETH 涌入池，价格压低</span></td>
+          <td style="color:#60a5fa;font-weight:700;">1.000 ↑<br><span style="font-size:11px;color:#64748b;">ETH 取出，价格恢复</span></td>
+          <td style="color:#f87171;font-weight:700;">0.764 ↓↓<br><span style="font-size:11px;color:#64748b;">200 ETH 抛售，大幅压价</span></td>
+        </tr>
+        <tr><td>Alice 持有</td><td>—</td><td>—</td><td>—</td><td>债务 100 ETH | 持有 83.3 USDT</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn" style="margin-top:16px;">
+    <strong>价格影响如何波及所有用户</strong>
+    步骤3 完成后，该 Vault 内 ETH 价格从 <strong>1.000 → 0.764</strong>（跌幅 23.6%）。由于所有仓位的盈亏、margin level、清算价都基于<strong>同一个 Vault 的池内价格</strong>计算：
+    <ul style="margin-top:8px;padding-left:20px;">
+      <li style="margin-bottom:4px;">其他 LP 提供者：持仓价值随之重新定价，实际承受无偿损失（Impermanent Loss）</li>
+      <li style="margin-bottom:4px;">其他多头持有者：ETH 价格下跌 → 其 margin level 也同步恶化 → 可能触发级联清算</li>
+      <li>其他空头持有者：ETH 价格下跌 → margin level 改善，获益</li>
+    </ul>
+    这是 Likwid 共享池模型的核心风险：<strong>每一笔大额杠杆交易都在「移动」池内定价，直接影响同 Vault 内的所有其他参与者。</strong>
+  </div>
+
+  <div class="callout info" style="margin-top:12px;">
+    <strong>平仓（正常还款，ETH 如期下跌）</strong>
+    ETH 价格继续下跌后，Alice 用 83.3 USDT 低价买回 &gt;100 ETH → 还清 100 ETH 债务 → mirror_x 归零 → 抵押品归还，价差即为盈利。欠条销毁，账本平衡。
+  </div>
+
+  <h2>三、清算机制：liquidateBurn 与 liquidateCall <a href="https://docs.likwid.fi/whitepaper/risk-management-and-strategies/liquidation" target="_blank" style="font-size:13px;font-weight:400;color:#3b82f6;text-decoration:none;margin-left:8px;">↗ 原文</a></h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">⚡ 清算人 ⭐⭐⭐</span><span class="role-pill primary">📈 杠杆交易者 ⭐⭐⭐</span><span class="role-pill">🧑‍🌾 双边 LP ⭐⭐</span></div>
+
+  <div class="callout info">
+    <strong>什么是清算？</strong>
+    在杠杆借贷系统中，若资产价值下跌或债务价值上涨，抵押品可能不再足以覆盖债务。清算是<strong>在仓位变成系统净负债之前强制关闭它</strong>——用剩余抵押品偿还债务，阻止坏账蔓延到其他流动性提供者。
+  </div>
+
+  <h3>为什么 Likwid 需要自己的清算机制？</h3>
+
+  <div class="callout info">
+    <strong>为什么 Likwid 必须自己处理清算，而不能像 Aave 那样外包？</strong>
+    <p style="margin-bottom:12px;">
+      <strong>Aave 的做法</strong>：借款时，协议给借款人发一个可以在市场上自由买卖的「债务凭证」代币。任何人都能买这个凭证来参与清算，市场上形成了竞争激烈的清算机器人生态——就像公开拍卖。
+    </p>
+    <p style="margin-bottom:12px;">
+      <strong>Likwid 的做法</strong>：借款的「欠账」只是 Vault 内部账本上的一个数字（<code>mirror_x</code>），像私人记账本里的一条备注，既不是代币，也无法转让。没有公开市场，外部套利者无法低门槛地参与竞价清算。
+    </p>
+    <p style="margin:0;">
+      所以 Likwid 设计了自己的两条路径：优先在 Vault 内部完成清算（清算人只需要触发操作，不需要带钱来）；内部解决不了时，才让外部人带钱进来偿债。
+    </p>
+  </div>
+
+  <div class="callout info">
+    <strong>🧭 两种 LP 模式，而非"一份钱三种用途"</strong>
+    <p style="margin-bottom:10px; color:#cbd5e1;">Likwid 的 Vault 有<strong>两种独立的 LP 模式</strong>，对应不同的收益结构和风险：</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 12px;">
+      <div style="background:#0f1117;border:1px solid rgba(34,197,94,.3);border-left:3px solid #22c55e;border-radius:8px;padding:12px 14px;">
+        <div style="color:#86efac;font-weight:600;font-size:13px;margin-bottom:6px;">① 双边 LP（Bilateral LP）</div>
+        <div style="font-size:12.5px;color:#cbd5e1;line-height:1.7;">存入 ETH+USDT 配对资金，进入 <code style="font-size:11px;">pair reserves</code>，充当：<ul style="margin:6px 0 6px 18px;padding:0;color:#94a3b8;"><li>swap 对手方（AMM 流动性深度）</li><li>间接支撑杠杆可行性（pair+lend 共同构成 vault 总深度）</li></ul><span style="color:#86efac;">收益</span>：swap 费（含杠杆开平仓产生的 swap 费）<br><span style="color:#fca5a5;">风险</span>：IL + 池深度不足时的流动性风险<br><span style="color:#64748b;font-size:11px;">⚠️ 借贷利息流入 lend reserves，由单边出借者专属获得，不流向 pair LP</span></div>
+      </div>
+      <div style="background:#0f1117;border:1px solid rgba(139,92,246,.3);border-left:3px solid #8b5cf6;border-radius:8px;padding:12px 14px;">
+        <div style="color:#c4b5fd;font-weight:600;font-size:13px;margin-bottom:6px;">② 单边出借（Lend Reserves）</div>
+        <div style="font-size:12.5px;color:#cbd5e1;line-height:1.7;">只存单一币种，<strong style="color:#fdba74;">不做市</strong>，纯作为杠杆方借贷来源。<ul style="margin:6px 0 6px 18px;padding:0;color:#94a3b8;"><li>不进入 AMM 曲线</li><li>不承担 IL</li></ul><span style="color:#86efac;">收益</span>：借贷利息<br><span style="color:#fca5a5;">风险</span>：利用率波动 + 极端坏账（保险基金兜底）</div>
+      </div>
+    </div>
+    <p style="margin:0; color:#cbd5e1;"><strong style="color:#93c5fd;">核心</strong>：资本效率高的本质是 pair reserves（双边 LP）和 lend reserves（单边出借）共存于同一个 Vault，两者共同构成 swap 深度和杠杆借贷的资金池——而非像 Uniswap + Aave 拼接那样资金分散在两个独立协议。</p>
+    <p style="color:#9ca3af;font-size:12px;margin-top:8px;border-top:1px dashed rgba(148,163,184,.2);padding-top:8px;">💡 双边 LP = swap 做市，earns swap fees；单边 LP = 专门提供借贷资金，earns 借贷利息。两种模式收益来源不同，但共享同一个 Vault 深度。</p>
+  </div>
+
+  <h3>两条路径的定位</h3>
+
+  <div class="cards" style="grid-template-columns: 1fr 1fr; margin-bottom:4px;">
+    <div class="card" style="border-color: #1e3a5f;">
+      <div class="card-icon">🔥</div>
+      <h4>liquidateBurn — 首选路径</h4>
+      <p>Vault 内部执行 AMM swap，用抵押品买回债务资产，Mirror Reserve 归零。清算人只需 Gas，无需垫资。适用于池深充足场景。</p>
+    </div>
+    <div class="card" style="border-color: #374151;">
+      <div class="card-icon">📥</div>
+      <h4>liquidateCall — 备用路径</h4>
+      <p>池子过浅、内部 swap 滑点过高时启用。清算人从外部注入债务资产直接偿债，无额外价格冲击，但需清算人自备资金。</p>
+    </div>
+  </div>
+
+  <div class="callout info" style="font-size:12px;">
+    <strong>命名注意（Likwid 专属术语）</strong>
+    liquidateBurn / liquidateCall 是 Likwid 合约函数名，不是 DeFi 通用术语。Aave 叫 <code>liquidationCall()</code>，GMX 叫 <code>liquidatePosition()</code>——本质都是清算，但执行路径不同。
+  </div>
+
+  <h3>触发条件</h3>
+
+  <div class="formula" style="text-align:left;">
+    <div style="font-family:monospace;color:#60a5fa;font-size:16px;font-weight:700;">Margin Level = 资产价值 / 债务 ≤ <span style="color:#fbbf24;">阈值</span></div>
+    <div style="margin-top:12px;font-size:13px;color:#64748b;">
+      资产价值：基于当前池状态（含储备感知定价）&nbsp;&nbsp;|&nbsp;&nbsp;债务：借款本金 + 累计利息
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#94a3b8;border-top:1px solid #1e293b;padding-top:10px;">
+      <strong style="color:#fbbf24;">阈值不是固定 1.1</strong>——这是每个 Pool 初始化时设定的参数（称为 <code>marginRatio</code>）。<br>
+      低波动池（如稳定币）：1.05；高波动池（如 meme coin）：1.15~1.2。1.1 是文档示例值。
+    </div>
+  </div>
+
+  <h3>场景：ETH 反涨触发空头清算（延迟清算 → 坏账示例）</h3>
+
+  <div class="callout warn" style="margin-bottom:16px;">
+    <strong>⚠️ 为什么这个例子有坏账？</strong>
+    正常情况下，清算应在 ML 降至阈值（1.10）时立即触发——此时 ETH 仅涨到 ≈0.757 USDT，资产仍超过债务 10%，liquidateBurn 的滑点通常在 10% buffer 内，<strong>不产生坏账</strong>。<br>
+    此例展示的是<strong>延迟清算</strong>场景：无人及时调用合约，ETH 继续涨至 0.87 → ML 已跌破 1.0（资产 &lt; 债务）→ 清算后必然出现坏账，由保险基金兜底。
+  </div>
+
+  <div class="state-diff" style="grid-template-columns: repeat(2,1fr); margin-bottom:20px;">
+    <div class="state-box before">
+      <div class="state-label">触发时刻（ETH = 0.87）</div>
+      <div class="state-row"><span class="state-key">Alice 资产</span><span class="state-val">83.3 USDT（固定现金）</span></div>
+      <div class="state-row"><span class="state-key">ETH 价格</span><span class="state-val bad">0.87 USDT ↑（空头亏损方向）</span></div>
+      <div class="state-row"><span class="state-key">债务（USDT 计）</span><span class="state-val bad">100 × 0.87 = 87 USDT</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">Margin Level</span><span class="state-val bad">83.3 ÷ 87 = 0.957 &lt; 1.10 → 触发</span></div>
+    </div>
+    <div class="state-box" style="border:1px solid #78350f;background:#130c0c;">
+      <div class="state-label" style="color:#fbbf24;">正常触发 vs 延迟触发</div>
+      <div class="state-row"><span class="state-key">正常触发价</span><span class="state-val changed">ETH ≈ 0.757 USDT（ML 刚触 1.10）</span></div>
+      <div class="state-row"><span class="state-key">此时 buffer</span><span class="state-val changed">+10%，通常够覆盖滑点</span></div>
+      <div class="state-row"><span class="state-key">延迟触发价</span><span class="state-val bad">ETH = 0.87（ML = 0.957 &lt; 1）</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">延迟结果</span><span class="state-val bad">资产已 &lt; 债务 → 必然坏账</span></div>
+    </div>
+  </div>
+
+  <p style="color:#60a5fa; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">⬇ 以下为 liquidateBurn 执行路径（内部 Vault swap）</p>
+
+  <div class="flow" style="margin-top:4px;">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">清算人调用合约，验证 margin level &lt; 阈值</div>
+        <div class="step-desc">任何外部地址均可触发，无许可限制；清算人只需支付 Gas</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">协议在 Vault 内部执行强制 swap（买回 ETH）</div>
+        <div class="step-desc">用 Alice 的 83.3 USDT → 买入 ETH，基于当前池深度 + 真实滑点（ETH 已涨，买回成本更高）→ 实际买回约 <strong>95.75 ETH</strong></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">偿还债务，处理坏账</div>
+        <div class="step-desc">还清 95.75 ETH（债务 100 ETH 的大部分）<br>剩余 <span class="badge red">4.25 ETH 坏账</span> → 由保险基金覆盖</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">消除 mirror 债务</div>
+        <div class="step-desc"><code>mirror_x</code> 从 100 <strong style="color:#34d399;">归零</strong>，账本平衡恢复</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">分配清算奖励 + 销毁 NFT</div>
+        <div class="step-desc">清算人获得预设清算奖金（从抵押品扣除），Alice 的 margin position NFT 被销毁</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>liquidateCall 执行路径对比（外部还款）</h3>
+
+  <div class="flow" style="margin-top:4px;">
+    <div class="step">
+      <div class="step-num" style="background:#1c1404;border-color:#78350f;color:#fbbf24;">1</div>
+      <div class="step-body">
+        <div class="step-title" style="color:#fbbf24;">清算人先 approve ETH 转入合约</div>
+        <div class="step-desc">清算人必须自备足额 ETH（此例 = 100 ETH）；调用前需 approve 合约地址</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1c1404;border-color:#78350f;color:#fbbf24;">2</div>
+      <div class="step-body">
+        <div class="step-title" style="color:#fbbf24;">调用 liquidateCall(positionId, amount)，注入 ETH</div>
+        <div class="step-desc">ETH 直接注入合约，<strong>不经过 Vault 内部 swap</strong>，不产生额外价格冲击</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1c1404;border-color:#78350f;color:#fbbf24;">3</div>
+      <div class="step-body">
+        <div class="step-title" style="color:#fbbf24;">合约用清算人的 ETH 直接偿还 mirror 债务</div>
+        <div class="step-desc">mirror_x 归零，债务消除；无坏账（清算人提供了足额资产）</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1c1404;border-color:#78350f;color:#fbbf24;">4</div>
+      <div class="step-body">
+        <div class="step-title" style="color:#fbbf24;">清算人获得 Alice 的 USDT 抵押品（含清算折扣奖励）</div>
+        <div class="step-desc">清算折扣 = 补偿清算人的资金占用成本；Alice NFT 销毁</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin:16px 0;">
+    <strong>两者的核心区别</strong>
+    <span style="display:block;margin-top:6px;">
+      liquidateBurn：协议内部自动处理，<strong style="color:#34d399;">清算人零资本</strong>（只需 Gas），但依赖池深度，可能留坏账。<br>
+      liquidateCall：清算人亲自提供 ETH，<strong style="color:#fbbf24;">不产生额外价格冲击</strong>，清算更干净，但需清算人持有足额 ETH。<br>
+      <span style="color:#64748b; font-size:12px; margin-top:6px; display:block;">Likwid 优先走 liquidateBurn，池子太浅（买回 ETH 的滑点过高）时 fallback 到 liquidateCall。</span>
+    </span>
+  </div>
+
+  <div class="callout warn" style="margin:0 0 16px;">
+    <strong>⚠️ 清算失灵场景：何时无人愿意清算？</strong>
+    <span style="display:block;margin-top:8px;line-height:1.8;">
+      <strong style="color:#fbbf24;">liquidateCall 失灵</strong>：仓位已资不抵债（ML &lt; 1.0）时，清算人提供 ETH 换到的 USDT &lt; ETH 成本，净亏损 → 无经济激励，无人响应。本文例子（ETH=0.87，资产83.3 &lt; 债务87）即是此情形。<br><br>
+      <strong style="color:#fbbf24;">liquidateBurn 相对更抗失灵</strong>：清算人只需 Gas，奖励从抵押品扣取，只要仓位够大奖励 &gt; Gas 就有利可图。但仓位极小（尘埃仓位）时仍可能无人触发。<br><br>
+      <strong style="color:#fbbf24;">若真的无人清算 →</strong>
+    </span>
+    <ol style="margin-top:4px;padding-left:20px;color:#fca5a5;font-size:13px;line-height:1.8;">
+      <li>仓位继续累积负债，直到协议通过保险基金注销 NFT</li>
+      <li>保险基金耗尽 → 坏账直接稀释 LP（按份额承担损失）</li>
+      <li>LP 亏损撤出 → 池子更浅 → 下次清算成本更高 → 清算激励进一步恶化 → <strong style="color:#f87171;">循环触发死亡螺旋</strong></li>
+    </ol>
+    <span style="color:#64748b;font-size:12px;display:block;margin-top:8px;">这是 Section 六「死亡螺旋」中价格失灵的另一个触发路径：不仅是价格暴跌造成，也可以由清算激励失效引发。</span>
+  </div>
+
+  <h3>清算前后状态对比</h3>
+
+  <div class="state-diff">
+    <div class="state-box before">
+      <div class="state-label">清算前</div>
+      <div class="state-row"><span class="state-key">real_x (ETH)</span><span class="state-val">1200</span></div>
+      <div class="state-row"><span class="state-key">real_y (USDT)</span><span class="state-val">916.7</span></div>
+      <div class="state-row"><span class="state-key">mirror_x</span><span class="state-val bad">100 ← 未偿 ETH 债务</span></div>
+      <div class="state-row"><span class="state-key">系统债务</span><span class="state-val bad">存在</span></div>
+      <div class="state-row"><span class="state-key">Alice NFT</span><span class="state-val">有效</span></div>
+    </div>
+    <div class="state-box after">
+      <div class="state-label">清算后</div>
+      <div class="state-row"><span class="state-key">real_x (ETH)</span><span class="state-val changed">1104.25（买回归还）</span></div>
+      <div class="state-row"><span class="state-key">real_y (USDT)</span><span class="state-val changed">1000（USDT 归池）</span></div>
+      <div class="state-row"><span class="state-key">mirror_x</span><span class="state-val changed">0 ← 债务消除</span></div>
+      <div class="state-row"><span class="state-key">坏账</span><span class="state-val bad">4.25 ETH 保险基金覆盖</span></div>
+      <div class="state-row"><span class="state-key">Alice NFT</span><span class="state-val">已销毁</span></div>
+    </div>
+  </div>
+
+  <h2>四、liquidateBurn vs liquidateCall</h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">⚡ 清算人 ⭐⭐⭐</span><span class="role-pill">📈 杠杆交易者 ⭐⭐</span></div>
+
+  <div class="cards" style="grid-template-columns: 1fr 1fr;">
+    <div class="card" style="border-color: #1e3a5f;">
+      <div class="card-icon">🔥</div>
+      <h4>liquidateBurn — 内部清算</h4>
+      <p style="color:#3b82f6; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">✦ 默认首选路径</p>
+      <div class="state-row"><span class="state-key">资金来源</span><span class="state-val">Vault 内部 swap 抵押品</span></div>
+      <div class="state-row"><span class="state-key">资本要求</span><span class="state-val changed">极低（Gas only）</span></div>
+      <div class="state-row"><span class="state-key">适用场景</span><span class="state-val">池深度充足时</span></div>
+      <div class="state-row"><span class="state-key">核心优点</span><span class="state-val">降低清算门槛，不依赖外部市场</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">主要风险</span><span class="state-val bad">价格脱锚，坏账稀释 LP</span></div>
+    </div>
+    <div class="card" style="border-color: #374151;">
+      <div class="card-icon">📥</div>
+      <h4>liquidateCall — 外部还款</h4>
+      <p style="color:#64748b; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">◇ 浅流动性备用路径</p>
+      <div class="state-row"><span class="state-key">资金来源</span><span class="state-val">清算人外部注入债务资产</span></div>
+      <div class="state-row"><span class="state-key">资本要求</span><span class="state-val bad">高（需自备足额债务资产）</span></div>
+      <div class="state-row"><span class="state-key">适用场景</span><span class="state-val">池太浅 / 内部滑点过大</span></div>
+      <div class="state-row"><span class="state-key">核心优点</span><span class="state-val">为浅池提供清算可能</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">主要风险</span><span class="state-val bad">参与度低 → 清算不及时</span></div>
+    </div>
+  </div>
+
+  <h2>五、与 Aave / GMX 清算机制对比</h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">⚡ 清算人 ⭐⭐⭐</span><span class="role-pill">🧑‍🌾 双边 LP ⭐⭐</span><span class="role-pill">📈 杠杆交易者 ⭐⭐</span></div>
+
+  <h3>各协议清算机制展开说明</h3>
+
+  <details>
+    <summary>🏦 Aave — 谁的贷款出问题，谁来清算谁赚钱</summary>
+    <div class="details-body">
+      <p>Aave 是一个借贷平台：你把 ETH 存进去，可以借出 USDT（或反过来）。存的多、借的少才能借——叫「超额抵押」。</p>
+      <p><strong>出问题时怎么处理？</strong></p>
+      <ul>
+        <li>系统给每笔借款打一个「健康分」。分数 &lt; 1，代表抵押品已不足以覆盖借款，任何人都可以来清算。</li>
+        <li>来清算的人（通常是自动程序）帮你还钱，然后拿走你的抵押品，但能拿到比还的钱多一点（比如还了 100 USDT，拿走价值 108 USDT 的 ETH）。多出来的 8 USDT 是清算人的利润。</li>
+        <li>清算人不需要自己有钱——他可以用「闪电贷」（一种在同一笔交易里借进来、用完即还的工具）零本金完成操作。</li>
+        <li>风险是隔离的：每种资产有独立的市场，一个崩了不会传染其他资产。</li>
+      </ul>
+      <p style="margin-top:12px; color:#3b82f6; font-size:12px;"><strong>对比 Likwid</strong>：Aave 的坏账被扔给了公开市场（清算人在 Uniswap 这类平台上卖掉抵押品）；Likwid 把坏账关在自己的池子里处理，不影响外面，但会影响同一个池子里的所有人。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>📈 GMX v1 — 所有人的对手方是同一个「公共金库」</summary>
+    <div class="details-body">
+      <p>GMX 是做合约交易的（可以 1x、5x、甚至 50x 做多做空 BTC/ETH）。它没有订单簿，而是用一个叫 GLP 的大资金池当所有交易者的对手方。</p>
+      <p><strong>类比</strong>：你在 GMX 做多 ETH，你赚的钱从 GLP 池里出；你亏的钱进入 GLP 池。GLP 持有者相当于「开了一家赌场的庄家」——交易者总体亏钱时，GLP 持有者赚；交易者整体赚钱时，GLP 持有者亏。</p>
+      <p><strong>出问题时怎么处理？</strong></p>
+      <ul>
+        <li>GMX 自己运行监控程序（Keeper），当某个仓位的亏损达到保证金上限时，自动平仓。</li>
+        <li>平仓不需要外部人来清算——Keeper 直接从 GLP 池扣钱处理，清算人只是触发操作拿点手续费。</li>
+        <li>风险由 GLP 池全体持有者共同承担：某个大仓位爆仓，冲击被稀释在整个 GLP 里。</li>
+      </ul>
+      <p style="margin-top:12px; color:#3b82f6; font-size:12px;"><strong>对比 Likwid</strong>：GMX 的 GLP 是全平台共享的大池子，风险被几百个市场稀释；Likwid 每个 Vault 各自独立，ETH/USDT 这个池子里的清算只能由这个池子自己消化。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>⚡ dYdX v4 — 最像传统期货交易所的链上合约</summary>
+    <div class="details-body">
+      <p>dYdX 的体验最接近 OKX/Binance 合约：有挂单、有撮合，是真正的订单簿，不是 AMM。它运行在自己独立的区块链上（基于 Cosmos 技术），速度快、手续费低。</p>
+      <p><strong>出问题时怎么处理？</strong></p>
+      <ul>
+        <li>每个账户有「初始保证金率」和「维持保证金率」，类似 OKX 合约的强平机制。当亏损吃掉维持保证金时触发强平。</li>
+        <li>强平时从订单簿上以市价成交，不像 AMM 有滑点问题——有人挂单就能成交。</li>
+        <li>如果市价成交后仍有亏损（穿仓），由「保险基金」补足，资金来源是协议手续费的积累。</li>
+        <li>每个子账户风险独立——一个账户爆仓不影响其他账户。</li>
+      </ul>
+      <p style="margin-top:12px;"><strong style="color:#e2e8f0;">为什么 dYdX 不需要外部清算人来"抢"？</strong></p>
+      <p>dYdX v4 的清算由<strong>区块链验证节点（Validator）在出块时自动扫描并触发</strong>。当某个账户保证金低于维持保证金率，协议自动在订单簿挂出市价强平单——不需要外部机器人发现并抢跑。这和 Aave 的"谁先发现谁赚奖励"竞争模式完全不同：dYdX 是协议内置自动化，Aave 是开放的清算人市场。<br><span style="color:#64748b; font-size:12px;">⚠️ 也不是"不需要清算"——而是清算执行方从"外部 MEV 机器人"变成了"协议出块逻辑自动执行"。</span></p>
+      <p style="margin-top:12px; color:#3b82f6; font-size:12px;"><strong>对比 Likwid</strong>：dYdX 的清算价格由市场买卖双方决定（谁挂单谁成交），更市场化；Likwid 的清算价格由池子内部的数学公式决定，极端行情下可能严重偏离真实市价。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>🔷 Uniswap v3 — 纯交易所，不借钱、不杠杆、没有清算（对比参考）</summary>
+    <div class="details-body">
+      <p>Uniswap v3 就是一个自动做市商（AMM）：你把两种代币存进去，其他人来换，你赚手续费。<strong>没有借贷，没有杠杆，所以也没有清算</strong>。</p>
+      <p><strong>存钱进去有什么风险？</strong></p>
+      <ul>
+        <li>不是「被强平」的风险，而是「无常损失」（Impermanent Loss）：当你存入 ETH+USDT 后，如果 ETH 价格大涨，你池子里的 ETH 会被别人换走，你剩下的 USDT 多了、ETH 少了——相比你直接拿着 ETH，会少赚一些。价格波动越大，这个损失越明显。</li>
+        <li>只要价格没跑出你设定的区间，你就持续赚手续费；一旦跑出去，你的钱变成全是一边（要么全是 ETH，要么全是 USDT），停止赚费用。</li>
+      </ul>
+      <p style="margin-top:12px; color:#3b82f6; font-size:12px;"><strong>为什么列在这里</strong>：Likwid 的基础架构和 Uniswap v3 很像（都是集中流动性 AMM），区别在于 Likwid 在上面叠加了借贷层。这让 Likwid 的 LP 除了无常损失风险之外，还多了一层借款人违约的风险。</p>
+    </div>
+  </details>
+
+  <h3>清算机制快速对比</h3>
+
+  <div class="cards">
+    <div class="card">
+      <h4 style="color:#a78bfa; margin-bottom:14px;">Aave</h4>
+      <div class="state-row"><span class="state-key">清算资产来源</span><span class="state-val">外部 DEX（Uniswap 等）</span></div>
+      <div class="state-row"><span class="state-key">资本要求</span><span class="state-val bad">需持有债务资产</span></div>
+      <div class="state-row"><span class="state-key">价格影响</span><span class="state-val">外溢公开市场</span></div>
+      <div class="state-row"><span class="state-key">风险隔离</span><span class="state-val changed">较好</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">本质</span><span class="state-val">风险转移给公开市场</span></div>
+    </div>
+    <div class="card">
+      <h4 style="color:#fbbf24; margin-bottom:14px;">GMX</h4>
+      <div class="state-row"><span class="state-key">清算资产来源</span><span class="state-val">GLP 全局流动性池</span></div>
+      <div class="state-row"><span class="state-key">资本要求</span><span class="state-val changed">无（交易即清算）</span></div>
+      <div class="state-row"><span class="state-key">价格影响</span><span class="state-val">由大型 GLP 池缓冲</span></div>
+      <div class="state-row"><span class="state-key">风险隔离</span><span class="state-val" style="color:#fbbf24">一般</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">本质</span><span class="state-val">peer-to-pool，全局共担</span></div>
+    </div>
+    <div class="card" style="border-color: #1e3a5f;">
+      <h4 style="color:#60a5fa; margin-bottom:14px;">Likwid liquidateBurn</h4>
+      <div class="state-row"><span class="state-key">清算资产来源</span><span class="state-val">自身 Vault 内部</span></div>
+      <div class="state-row"><span class="state-key">资本要求</span><span class="state-val changed">极低（Gas only）</span></div>
+      <div class="state-row"><span class="state-key">价格影响</span><span class="state-val bad">内部化，影响 Vault 所有用户</span></div>
+      <div class="state-row"><span class="state-key">风险隔离</span><span class="state-val bad">差（交易/借贷/杠杆共享）</span></div>
+      <div class="state-row" style="border:none"><span class="state-key">本质</span><span class="state-val">AMM 内部债务自包含消化</span></div>
+    </div>
+  </div>
+
+  <h2>六、核心风险：死亡螺旋</h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">🧑‍🌾 双边 LP ⭐⭐⭐</span><span class="role-pill primary">💰 单边出借者 ⭐⭐⭐</span><span class="role-pill">⚡ 清算人 ⭐⭐</span></div>
+
+  <div class="callout info">
+    Likwid 将风险"关起门来"在自身 AMM 内消化——不像 Aave 把坏账扔给外部市场，而是在内部重新分配资产与债务。这带来了极高的资本效率，但也创造了内部耦合的系统性风险。
+  </div>
+
+  <div class="spiral">
+    <h4>极端行情下的死亡螺旋风险</h4>
+    <div class="spiral-step"><div class="spiral-arrow">▼</div><div class="spiral-text">ETH 价格暴跌，杠杆多头仓位跌破 1.1 清算线</div></div>
+    <div class="spiral-step"><div class="spiral-arrow">▼</div><div class="spiral-text">liquidateBurn 在 Vault 内部大量卖出 ETH 换 USDT</div></div>
+    <div class="spiral-step"><div class="spiral-arrow">▼</div><div class="spiral-text">Vault 内 real_x 急剧增加，real_y 急剧减少，ETH/USDT 价格与外部市场严重脱钩</div></div>
+    <div class="spiral-step"><div class="spiral-arrow">▼</div><div class="spiral-text">影响该 Vault 内所有现货用户、借贷用户、其他方向杠杆仓位的盈亏计算</div></div>
+    <div class="spiral-step"><div class="spiral-arrow">▼</div><div class="spiral-text">可能触发更多仓位达到清算线 → 保险基金快速消耗 → 死亡螺旋</div></div>
+  </div>
+
+  <h3>三重防护机制</h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h4>动态费率</h4>
+      <p>live reserves 偏离 truncated reserves 时费率自动上升，抑制大额套利和 MEV 攻击，减缓价格失控速度</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔮</div>
+      <h4>截断预言机</h4>
+      <p>Truncated Oracle 过滤异常价格点，防止单点价格操纵触发不合理清算，为清算价提供更稳健的参照</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <h4>保险基金</h4>
+      <p>吸收清算过程中的坏账差额，防止坏账直接稀释 LP 储备，是系统最后的缓冲层</p>
+      <p style="margin-top:8px; color:#94a3b8; font-size:11px; border-top:1px solid #1e293b; padding-top:8px;">
+        <strong style="color:#64748b; display:block; margin-bottom:4px;">资金来源</strong>
+        ① 协议交易手续费按比例划拨<br>
+        ② 清算奖励中的协议留存部分<br>
+        ③ 外部流动性提供方直接存入（Likwid 允许独立的保险基金提供者参与）
+      </p>
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top:24px;">
+    <strong>结论</strong>
+    Likwid 的成败不取决于它的交易功能是否比 Uniswap 更快更便宜，而取决于<strong>统一流动性模型下的风险控制能否在极端市场压力下经受住考验</strong>。Mirror Reserves 是它资本效率的核心来源，liquidateBurn 是它风险自洽的关键路径，两者共同决定了这套系统在压力测试中的极限。
+  </div>
+
+  <h2>七、动态费率机制深度解析<a href="https://docs.likwid.fi/whitepaper/risk-management-and-strategies/dynamic-fee-strategy-against-mev-and-arbitrage-attacks" target="_blank" class="src-link">↗ 原文</a></h2>
+  <div class="role-pills"><span class="role-pills-label">核心相关角色</span><span class="role-pill primary">🤖 套利者 ⭐⭐⭐</span><span class="role-pill primary">🔄 现货交易者 ⭐⭐⭐</span><span class="role-pill">🧑‍🌾 双边 LP ⭐⭐</span></div>
+
+  <div class="callout info">
+    <strong>研究背景</strong>
+    白皮书专设章节"Dynamic Fee Strategy Against MEV and Arbitrage Attacks"。Likwid 是为数不多在协议层将动态费率作为<strong>主动风险管理工具</strong>（而非收益分配工具）的 DeFi 协议。
+  </div>
+
+  <h3>核心机制原理</h3>
+
+  <p>Likwid 动态费率的设计目标是：<strong>让套利成本 &gt; 套利利润</strong>，从而保护 LP 并将套利价值的一部分转化为协议收入。</p>
+
+  <div class="formula">
+    <div class="eq">fee = f( ΔP, U )</div>
+    <div class="desc">
+      <span><code>ΔP</code> 池内价格偏离外部参考的幅度</span>
+      <span><code>U</code> 资金利用率（utilization）</span>
+      <span><code>fee</code> 实时调整的 swap 手续费</span>
+    </div>
+  </div>
+
+  <h3>触发信号与调整逻辑</h3>
+
+  <div class="flow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">监控价格偏离（Bounded Price Movement）</div>
+        <div class="step-desc">持续比较 live reserves 定价 vs Truncated Oracle（截断预言机/TWAP）。当偏差超过预设阈值时，判定存在套利机会</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">监控资金利用率</div>
+        <div class="step-desc">高利用率 = 借贷需求旺盛 = 潜在闪电贷攻击风险上升 → 费率随利用率非线性增长，补偿 LP 风险</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">费率自动上调</div>
+        <div class="step-desc">超出阈值后费率自动提升，增加套利者成本。价格恢复稳定后费率回落至基础水平。Margin Fees 也受同一逻辑约束</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">与清算系统协同</div>
+        <div class="step-desc">动态费率是死亡螺旋三重防护的第一道防线（见第六节），在价格急剧偏离时主动减缓套利速度，为清算留出处置时间</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>与主流 DEX 费率机制对比</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>协议</th><th>费率类型</th><th>设计目标</th><th>与 Likwid 的本质区别</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Uniswap v3 / Pancake v3</strong></td>
+          <td>固定（池创建时确定，不可变）</td>
+          <td>LP 收益分配，简单可预测</td>
+          <td><span class="badge red">静态</span> 费率不响应市场状态，套利利润全归套利者</td>
+        </tr>
+        <tr>
+          <td><strong>Raydium CLMM</strong></td>
+          <td>固定，继承自池初始化设置</td>
+          <td>集中流动性资本效率</td>
+          <td><span class="badge red">静态</span> "动态"仅指流动性分布，不涉及手续费调整</td>
+        </tr>
+        <tr>
+          <td><strong>Trader Joe v2.1</strong></td>
+          <td>离散 bin 价差（结构性静态）</td>
+          <td>流动性简化管理，价格透明</td>
+          <td>
+            <span class="badge yellow">结构性</span> 抗 MEV 靠恒定透明价差，而非算法响应<br>
+            <span style="color:#64748b; font-size:11px; display:block; margin-top:6px; line-height:1.6;">
+              每个 bin 覆盖固定价格范围（如 0.1%），bin 内价格恒定。<br>
+              三明治攻击逻辑：攻击者须<strong style="color:#94a3b8;">推爆整个 bin</strong>（付出 ≥ bin_step 成本）才能影响价格，但从受害者身上能赚到的滑点 ≤ bin_step。<br>
+              <strong style="color:#fbbf24;">净收益 ≤ 0</strong>，结构上无利可图——无需动态算法，价格离散化本身就是防护。
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Uniswap v4 Hooks</strong></td>
+          <td>完全可编程（开发者自定义）</td>
+          <td>通用框架，释放创新</td>
+          <td><span class="badge yellow">框架</span> Hooks 是工具箱；Likwid 动态费率是针对杠杆借贷风险的专用策略</td>
+        </tr>
+        <tr>
+          <td><strong>Likwid</strong></td>
+          <td><strong>算法动态调整</strong>（随市场状态连续变化）</td>
+          <td><strong>主动风险管理 + 抗 MEV/套利</strong></td>
+          <td><span class="badge green">动态</span> 费率是协议安全系统的一部分，不仅是收益参数</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>DeFi 中 Anti-MEV 动态费率的主要实现方式</h3>
+
+  <div class="cards" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h4>① 基于价格偏离（Likwid 采用）</h4>
+      <p>监控池内价格 vs 外部 TWAP/预言机偏差，超阈值自动上调费率，使套利成本 &gt; 套利利润。</p>
+      <p style="color:#64748b; font-size:12px; margin-top:8px; border-top:1px solid #1e293b; padding-top:8px;">
+        <strong style="color:#7dd3fc; display:block; margin-bottom:6px;">❓ 那价格谁来同步？</strong>
+        这个机制只阻断「同块内快速操纵」，不阻止「跨块的正常套利」：<br><br>
+        <strong style="color:#e2e8f0;">慢漂移</strong>（Slow Drift）：池内价格因正常交易缓慢偏离市场 → 套利者等下一区块进来 → 此时费率已回落至基础值 → 套利有利可图 → 价格回归 ✓<br><br>
+        <strong style="color:#e2e8f0;">快速攻击</strong>（Rapid Attack）：攻击者在同一区块内大额推价（三明治攻击） → live reserves 瞬间偏离 TWAP → 费率飙升 → 攻击成本 &gt; 收益 → 无利可图 ✗<br><br>
+        <strong style="color:#e2e8f0;">TWAP 的角色</strong>：时间加权平均价格是参照锚，计算过去一段时间的平滑均价，单块操纵无法改变它。动态费率据此判断「本次价格偏离是异常操纵还是正常漂移」，实现精准打击。
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📏</div>
+      <h4>② 基于交易规模非线性费率</h4>
+      <p>大额/单向交易按分段函数惩罚性收费，打击大规模套利，避免误伤普通用户。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <h4>③ 基于时间/区块递增费率</h4>
+      <p>同一池同方向的后续交易在短时间窗口内费率提升，抑制重复套利，给流动性恢复留时间。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h4>④ 与订单流拍卖集成（OFA）</h4>
+      <p>CowSwap / 1inch Fusion 模式：将 MEV 价值通过拍卖返还给用户，费率机制外包给专业网络。</p>
+      <p style="color:#64748b; font-size:12px; margin-top:8px; border-top:1px solid #1e293b; padding-top:8px;">
+        <strong style="color:#f87171; display:block; margin-bottom:4px;">传统 DEX（公开 mempool）</strong>
+        用户交易广播到公链内存池 → MEV 机器人看到 → 在你前面买入推高价格（front-run）→ 你以更贵的价格成交 → 机器人卖出套利 → 你的损失变成机器人利润<br><br>
+        <strong style="color:#34d399; display:block; margin-bottom:4px;">OFA 模式（私密订单 → solver 竞拍）</strong>
+        用户发出「交易意图」（签名报价，不进公开 mempool）→ 专业 solver 竞拍执行权 → 谁能给用户最好成交价谁赢 → 原本被 MEV 机器人拿走的价值，通过竞拍变成给用户的「更优价格」或补贴
+      </p>
+    </div>
+  </div>
+
+  <h3>按角色快速回顾</h3>
+  <p style="color:#9ca3af;font-size:13px;margin-bottom:14px;">读完全文后，根据你的角色定位直接抓取最相关的几条要点，快速对外复述或建模。</p>
+
+  <details>
+    <summary>🧑‍🌾 如果你是<strong style="color:#86efac;">双边 LP（Bilateral LP）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li>你存入的 ETH+USDT <strong>强制同时承担</strong> swap 做市与杠杆借贷两种角色（见 <span class="tag blue">一</span>），不能选择"我只做 swap"。</li>
+        <li>收益来自 <strong>swap 费</strong>（含杠杆开平仓时触发的 swap 费），<strong>不直接赚借贷利息</strong>（那是单边出借者的专属收益，流入独立的 <code>lend reserves</code>）。</li>
+        <li>主要风险：<strong>IL（市场波动）</strong> + <strong>杠杆方坏账</strong>（极端行情穿仓损失由 LP 共担），由保险基金兜底（见 <span class="tag blue">六</span>）。</li>
+        <li>动态费率（见 <span class="tag blue">七</span>）在高波动期自动上调，<strong>提升你的实际 APR</strong>——但同时意味着市场风险也更高。</li>
+        <li>对比 Uniswap V3 LP：额外赚取杠杆开平仓带来的 swap 费，但同时承担池深度被杠杆占用后的流动性风险（<span style="color:#fca5a5;">白皮书注：pair LP 不直接赚借贷利息；是否承担坏账损失目前文档未完全澄清，暂存疑</span>）。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>💰 如果你是<strong style="color:#c4b5fd;">单边出借者（Single-sided Lender）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li>只存单一币种，<strong>不进入 AMM 曲线，不承担 IL</strong>，收益结构最简单：纯借贷利息。</li>
+        <li>利率随<strong>借贷利用率</strong>动态变化——杠杆需求旺盛时利率高，冷清时利率低。</li>
+        <li>极端坏账由<strong>保险基金</strong>优先吸收（见 <span class="tag blue">六</span>），保险基金耗尽后才会触及本金。</li>
+        <li>适合<strong>稳健型资金</strong>：不想做市、不想承担方向性风险，只想拿利率。</li>
+        <li>对比 Aave 出借：资金被限定服务于本 Vault 的杠杆需求，利用率与 Vault 杠杆活跃度强相关。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>📈 如果你是<strong style="color:#fdba74;">杠杆交易者（Leveraged Trader）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li>每个 token 仓位需要<strong>独立保证金（隔离保证金模型）</strong>（见 <span class="tag blue">二</span>），不同仓位风险互不串联。</li>
+        <li>当 <code>ML &lt; 清算阈值</code> 时强制平仓，协议优先调用 <strong>liquidateBurn</strong>（无需垫资），失败才走 liquidateCall（见 <span class="tag blue">三</span> <span class="tag blue">四</span>）。</li>
+        <li><strong>大仓位开/平仓会直接影响同 Vault 内的 AMM 价格</strong>——滑点和反向价格冲击都由你承担。</li>
+        <li>动态费率在高波动期飙升，<strong>开/平仓成本可能远超平静期</strong>（见 <span class="tag blue">七</span>），需纳入策略成本。</li>
+        <li>资金费率持续支付：方向与多数派一致时付费，与少数派一致时收费，是长期持仓的隐性成本/收益。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>⚡ 如果你是<strong style="color:#fca5a5;">清算人（Liquidator）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li><strong>liquidateBurn 是首选</strong>：只需付 Gas，<strong>无需垫资</strong>，由协议内部销毁仓位完成清算（见 <span class="tag blue">三</span>）。</li>
+        <li><strong>liquidateCall 适用于外部清算人</strong>：需要垫资接盘，对应更高的清算奖励，适合有资金且能与 MEV 争夺的玩家。</li>
+        <li>当 <code>ML &lt; 1.0</code>（已穿仓）时，<strong>没人有经济激励主动清算</strong>，此时由保险基金兜底（见 <span class="tag blue">六</span>）——这是 Likwid 与 Aave 最显著的差异。</li>
+        <li>对比 Aave/GMX：Likwid 的清算<strong>市场竞争性更低</strong>，参与门槛和奖励结构不同，需单独建模（见 <span class="tag blue">五</span>）。</li>
+        <li>MEV 视角：liquidateBurn 几乎不受三明治攻击影响（无 swap 路径），但 liquidateCall 仍会暴露在抢跑/反向夹击之中。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>🔄 如果你是<strong style="color:#93c5fd;">现货交易者（Spot Trader）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li>动态费率在<strong>市场高波动期会显著上升</strong>，可能 ≥ 你在 Uniswap 等静态费率 DEX 上的预期成本（见 <span class="tag blue">七</span>）。</li>
+        <li>Vault 内价格由<strong>本池 AMM 决定</strong>，可能短暂偏离外部 CEX/DEX 市价——套利者最终会把它收敛回来。</li>
+        <li>同 Vault 内的<strong>大额杠杆开/平仓会瞬时推动池内价格</strong>，可能导致额外滑点，建议大额单分批。</li>
+        <li>所有费用最终流向双边 LP + 单边出借者 + 协议金库——你支付的是这些角色的收益来源。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>🤖 如果你是<strong style="color:#67e8f9;">套利者（Arbitrageur）</strong></summary>
+    <div class="details-body">
+      <ul style="margin:0;padding-left:20px;line-height:1.9;color:#cbd5e1;">
+        <li>动态费率<strong>抑制了同块 MEV（sandwich attack）</strong>，使攻击成本 &gt; 收益；但<strong>跨块套利仍有空间</strong>（见 <span class="tag blue">七</span>）。</li>
+        <li>Vault 价格偏离外部市价时有套利机会，但高波动期费率上调会<strong>直接压缩利润空间</strong>，需动态评估。</li>
+        <li>TWAP 作为费率基准锚点——你的套利收益本质上是"价差收益 − 动态费率成本"，二者同向变化。</li>
+        <li>对比 Uniswap：Likwid 的动态费率让极端行情下的套利更贵，但也意味着<strong>你的竞争对手同样面对相同成本</strong>。</li>
+      </ul>
+    </div>
+  </details>
+
+  <h3>对 MemeRush 产品展示的参考价值</h3>
+
+  <div class="callout warn" style="margin-bottom:16px;">
+    <strong>核心结论：Likwid 上所有 Token 都原生支持杠杆多空</strong>
+    Likwid 不是"做合约的协议"——它是一个 AMM，在<strong>每一个 Vault 里</strong>通过 Mirror Reserve 天然支持杠杆多空。不需要独立的合约市场，不需要专门上线某 token 的永续合约——只要 token 在 Likwid 有 Vault，用户就可以直接杠杆做多/做空。<br><br>
+    这对 MemeRush 的意义：如果接入 Likwid，<strong>列表上的每个 token 卡片理论上都可以增加「多/空」入口</strong>，不局限于 Swap。
+  </div>
+
+  <div class="cards" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom:16px;">
+    <div class="card" style="border-color: #14532d;">
+      <div class="card-icon">📱</div>
+      <h4>MemeRush Token 卡片</h4>
+      <p style="color:#94a3b8;">在现有 Swap / QuickBuy 入口旁，增加「做多 / 做空」CTA，最大倍数（如 5x）直接显示在卡片上。用户一眼看出这个 token 可以开杠杆。</p>
+    </div>
+    <div class="card" style="border-color: #14532d;">
+      <div class="card-icon">🌐</div>
+      <h4>Trading 全局页</h4>
+      <p style="color:#94a3b8;">在现有现货 DEX 展示之外，增加「杠杆可用」筛选维度或 Tab，让用户快速找到 Likwid 上支持多空的 token，对标 CEX 的合约交易页。</p>
+    </div>
+    <div class="card" style="border-color: #14532d;">
+      <div class="card-icon">📊</div>
+      <h4>代币详情页</h4>
+      <p style="color:#94a3b8;">在 token 详情页增加独立的「多空交易」入口模块，展示当前 Vault 参数（最大杠杆、清算阈值、资金费率）、开仓面板及持仓状态，让用户在同一页完成研究 + 交易决策闭环。</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>费率展示的借鉴</strong>
+    将费率从静态成本参数，转变为<strong>动态的、有目的的、可解释的协议健康与安全指标</strong>，在 UI 中清晰传达这一叙事。
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>方向</th><th>当前状态</th><th>借鉴 Likwid 后</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>费率展示</strong></td>
+          <td>静态数字 "Swap Fee: 0.3%"</td>
+          <td>"Swap Fee: 0.45%⚡ 高波动保护中" + tooltip 解释原因</td>
+        </tr>
+        <tr>
+          <td><strong>透明解释</strong></td>
+          <td>无</td>
+          <td>费率旁加 ℹ️："因检测到大规模价格偏离，费率暂时上调以抑制套利，保护流动性池"</td>
+        </tr>
+        <tr>
+          <td><strong>状态标签</strong></td>
+          <td>无</td>
+          <td>显示费率状态：正常 / 高波动 / 保护模式</td>
+        </tr>
+        <tr>
+          <td><strong>营销叙事</strong></td>
+          <td>无</td>
+          <td>"智能动态手续费 = 自动 MEV 防御盾"，对 Meme 高波动场景是强卖点</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <strong>注意</strong>
+    MemeRush 目前展示的是协议层（如 PancakeSwap / Raydium）的固定费率，要实现 Likwid 式动态费率需要协议层改造，短期不适合直接引入。但在<strong>产品信息展示层面</strong>借鉴其叙事方式，是风险低、收益高的起点。
+  </div>
+
+</div>
+
+<div class="container" style="padding-bottom:0;">
+
+<h2>八、多空机制使用条件（MemeRush 集成视角）<a href="https://docs.likwid.fi/product/contract-address" target="_blank" class="src-link">↗ 合约地址</a></h2>
+
+<div class="callout warn" style="margin-bottom:24px;">
+  <strong>每个 Meme Token 都可以多空吗？</strong>
+  <strong>不是。</strong>毕业到 BSC 只代表在 PancakeSwap 有现货流动性，与 Likwid 完全无关。<br><br>
+  能否多空取决于两件独立的事：<br>
+  ① <strong>有没有对应的 Likwid Pool</strong>——需要人主动部署，不会自动生成<br>
+  ② <strong>这个 Pool 里有没有足够的流动性</strong>——需要 LP 和出借人主动注入<br><br>
+  目前（2026-05）Likwid BSC 刚上线 26 天，极少数 token 有 Pool，多空覆盖范围非常有限。
+</div>
+
+<h3>Pool 是否随 Token 毕业自动创建？</h3>
+<p>
+  <strong>否。</strong>Token 从 Bonding Curve 毕业（Migrate）的过程只会在 PancakeSwap 等 DEX 创建现货流动性池，与 Likwid 协议完全独立。<br>
+  Likwid Pool 需要额外、显式地调用 <code>LikwidVault.createPool(PoolKey)</code> 才能创建——这是一笔独立的链上交易，可由任何人发起，不需要 Likwid 审批，但必须有人主动去做。
+</p>
+<div class="table-wrap" style="margin-bottom:24px;">
+<table>
+  <thead><tr><th>动作</th><th>触发时机</th><th>谁触发</th><th>是否自动</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Token 毕业 → PancakeSwap 现货池</td>
+      <td>Bonding Curve 完成，Migrate 执行</td>
+      <td>协议自动</td>
+      <td>✅ 自动</td>
+    </tr>
+    <tr>
+      <td>Likwid Pool 创建</td>
+      <td>独立，与毕业流程无关</td>
+      <td>任何人（MemeRush / 项目方 / 用户）</td>
+      <td>❌ 需手动</td>
+    </tr>
+    <tr>
+      <td>LP 注入 pair reserves</td>
+      <td>Pool 创建后，等待 LP 自愿存入</td>
+      <td>LP 用户</td>
+      <td>❌ 需手动</td>
+    </tr>
+    <tr>
+      <td>出借人注入 lend reserves</td>
+      <td>Pool 创建后，等待出借人自愿存入</td>
+      <td>出借人</td>
+      <td>❌ 需手动</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>使用多空机制的前提条件</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>条件</th><th>约束类型</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>1</strong></td>
+      <td>Token 已毕业到 BSC 主网</td>
+      <td>业务前提</td>
+      <td>从 Bonding Curve 完成 Migrate，在 BSC DEX 有现货流动性</td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td>对应 Likwid Pool 已创建</td>
+      <td>无权限门槛，但<strong>需要主动部署</strong></td>
+      <td>调用 <code>LikwidVault.createPool(PoolKey)</code>，参数仅需 <code>{token0, token1, fee, marginFee}</code>；任何人可部署，<strong>不随 Token 毕业自动创建</strong></td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td>Pool fee 高于最低阈值</td>
+      <td><strong>硬约束（创建时永久确定）</strong></td>
+      <td>
+        协议有 "low-fee-pool restriction"——<code>PoolKey.fee</code> 低于配置阈值时，<code>LikwidMarginPosition</code> 拒绝为该池开仓，<strong>无法事后修改</strong>。<br><br>
+        <strong>如何保证？</strong> 建池时使用 Integration Manual 规定的标准档位即可：<code>fee = 3000（0.3%）</code> 或 <code>fee = 5000（0.5%）</code>，均高于阈值，margin 功能永久可用。<br><br>
+        <strong>文档来源：</strong> <a href="https://docs.likwid.fi/whitepaper/protocol-mechanics/margin-position-mechanics" target="_blank" style="color:#60a5fa;">Margin Position Mechanics &gt; Fee Structure</a>（白皮书原文：<em>"the current manager rejects margin creation on pools whose base LP fee is below the configured threshold for margin usage"</em>）。Exact 阈值数值未在文档中公布，但使用标准档位无风险。
+      </td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td>Lend reserves ≥ 借入金额</td>
+      <td><strong>硬约束（按单笔校验）</strong></td>
+      <td>开仓时合约校验 <code>lend_reserves ≥ borrow_amount</code>；不满足则 revert，仓开不了。利用率高 → 借款利率飙升，形成市场软约束。<br><strong style="color:#f87171;">不随 Token 毕业自动满足</strong>——需要出借人主动调用 <code>LikwidLendPosition.addSingleLiquidity()</code> 注入资金</td>
+    </tr>
+    <tr>
+      <td><strong>5</strong></td>
+      <td>Pair reserves（AMM 深度）</td>
+      <td><strong>软约束（影响质量）</strong></td>
+      <td>无金额下限——协议层不拒绝，但越薄滑点越大。Pair reserves 耗尽时启用降级机制：改用 lA 代币（利息计息版）替代继续交易，不直接失败但用户体验变差。<br><strong style="color:#f87171;">不随 Token 毕业自动满足</strong>——需要 LP 主动调用 <code>LikwidPairPosition.addLiquidity()</code> 双边注入</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>"足够"的实际含义</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>流动性类型</th><th>硬下限</th><th>实用参考标准</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Lend reserves</strong></td>
+      <td>必须 ≥ 单笔最大借入量<br>（否则开仓失败）</td>
+      <td>按用户可开最大仓位估算：<br>支持 5× 杠杆、单仓 $1000 USDT → lend reserves 需 ≥ $4000（5×−1=4倍借入）<br>建议初期注入 $10K+ 以支持基础交易</td>
+    </tr>
+    <tr>
+      <td><strong>Pair reserves</strong></td>
+      <td>无协议下限（空池不 revert）</td>
+      <td>按可接受滑点反推：<br>$1000 仓位、5% 滑点容忍 → pair reserves 需 ≥ ~$20K<br>池子越深，价格越难被操纵，套利者越能维持池内/外价格一致</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Pool 创建合约调用（permissionless）</h3>
+<p>任何人都可以直接调用以下函数新建一个 Vault，无需 Likwid 白名单：</p>
+<div class="callout info" style="font-family:'SF Mono',Monaco,monospace;font-size:13px;line-height:1.8;">
+  <strong>BSC v2.2 · LikwidVault</strong><br>
+  合约地址：<code>0x065d449ec9D139740343990B7E1CF05fA830e4Ba</code><br>
+  上线日期：2026-05-01（距今 26 天，BSC 上极新）<br><br>
+  <strong>createPool 参数：</strong><br>
+  PoolKey = { currency0: token 地址（低位）, currency1: USDT 地址, fee: uint24, marginFee: uint24 }<br>
+  poolId = keccak256(abi.encode(PoolKey))
+</div>
+
+<h3>实操 FAQ</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>问题</th><th>答案</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>fee 设置错了（太低）怎么知道？</strong></td>
+      <td>建池前可通过 <code>LikwidMarginPosition</code> 合约（<code>0x6bec0c1dc4898484b7F094566ddf8bC82ED7Abe8</code>）读取协议配置常量来验证，或直接采用 Integration Manual 标准档 <code>fee = 3000</code> 规避风险。fee 一旦写入 PoolKey 就是 poolId 的一部分，建错了只能重建新 Pool（旧 Pool 永久不支持 margin）。</td>
+    </tr>
+    <tr>
+      <td><strong>毕业后 lend reserves 和 pair reserves 能自动满足吗？</strong></td>
+      <td><strong style="color:#f87171;">不能。</strong> 毕业流程只在 PancakeSwap 创建现货池，与 Likwid 完全独立。Likwid Pool 的两类流动性均需主动注入：<br>① <strong>Pair reserves</strong>：LP 双边存入（token + USDT），通过 <code>LikwidPairPosition.addLiquidity()</code><br>② <strong>Lend reserves</strong>：出借人单边存入 USDT，通过 <code>LikwidLendPosition.addSingleLiquidity()</code><br>两者都需要真实资金承诺，这是 Phase 2 的核心商业问题（谁来出钱、用什么激励吸引流动性），而不是技术问题。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>扩大覆盖范围的真正瓶颈：流动性引导</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>误解</th><th>实际情况</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>"需要 Likwid BD 同意才能新增 token"</td>
+      <td>❌ 错误。Pool 创建无许可，MemeRush 可以自行为任何毕业 token 建池</td>
+    </tr>
+    <tr>
+      <td>"建了 Pool 就能马上交易"</td>
+      <td>❌ 错误。空池子无法开杠杆仓，必须先有 LP 注入 pair reserves 和 lend reserves</td>
+    </tr>
+    <tr>
+      <td>"覆盖范围扩大 = 技术工作"</td>
+      <td>✅ 部分正确。技术上 1 笔交易创建池，但流动性引导是商业/激励问题：谁来当初始 LP？补贴多少？</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warn">
+  <strong>Hackathon 实践建议</strong>
+  Demo 阶段：为 1-2 个 BSC 毕业 meme token 手动建池 + 注入少量测试资金（可用 BSC testnet 或正式网极小金额）。
+  Phase 2：与 Likwid 合作以 LP 激励计划快速引导多 token 覆盖，不依赖 Likwid "批准"，而是共同做大流动性饼。
+</div>
+
+</div>
+
+<footer>Likwid Docs · https://docs.likwid.fi · 分析基于 v2.2 白皮书 · 使用条件章节补充于 2026-05-27</footer>
+</body>
+</html>
