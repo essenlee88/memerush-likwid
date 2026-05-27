@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemeRush × Likwid 正式立项前确认清单</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 32px 24px 80px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f0f6fc;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: #8b949e;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  .summary-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+  .summary-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .chip-blocker { background: rgba(248,81,73,0.15); border-color: #f85149; color: #f85149; }
+  .chip-high    { background: rgba(255,166,0,0.12); border-color: #e3b341; color: #e3b341; }
+  .chip-medium  { background: rgba(56,139,253,0.12); border-color: #388bfd; color: #388bfd; }
+  .chip-self    { background: rgba(63,185,80,0.12); border-color: #3fb950; color: #3fb950; }
+
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8b949e;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #21262d;
+  }
+
+  .card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .card:hover { border-color: #30363d; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .q-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b949e;
+    min-width: 28px;
+    margin-top: 1px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f0f6fc;
+    flex: 1;
+  }
+  .badges {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .badge-blocker { background: rgba(248,81,73,0.15); border-color: #f85149; color: #f85149; }
+  .badge-high    { background: rgba(255,166,0,0.10); border-color: #e3b341; color: #e3b341; }
+  .badge-medium  { background: rgba(56,139,253,0.10); border-color: #388bfd; color: #388bfd; }
+  .badge-ask     { background: rgba(163,113,247,0.12); border-color: #a371f7; color: #a371f7; }
+  .badge-internal{ background: rgba(63,185,80,0.10); border-color: #3fb950; color: #3fb950; }
+  .badge-self    { background: rgba(56,139,253,0.10); border-color: #388bfd; color: #388bfd; }
+
+  .card-context {
+    margin-left: 38px;
+    font-size: 13px;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+  .card-context p { margin-bottom: 6px; }
+  .card-context ul { padding-left: 16px; }
+  .card-context li { margin-bottom: 4px; }
+  .card-context code {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12px;
+    color: #e6edf3;
+  }
+  .highlight { color: #e3b341; }
+  .note { color: #3fb950; }
+
+  .answer-box {
+    margin-left: 38px;
+    margin-top: 10px;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .answer-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b949e;
+    min-width: 50px;
+    margin-top: 2px;
+  }
+  .answer-text {
+    font-size: 13px;
+    color: #6e7681;
+    font-style: italic;
+  }
+
+  .progress {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: #8b949e;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    min-width: 160px;
+  }
+  .progress-title { font-weight: 700; margin-bottom: 6px; color: #e6edf3; }
+  .progress-bar {
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    margin: 8px 0 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #388bfd, #a371f7);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .progress-count { font-size: 11px; }
+
+  .checkbox-wrap {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+  }
+  input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #388bfd;
+  }
+  .card.checked {
+    opacity: 0.6;
+  }
+  .card.checked .card-title {
+    text-decoration: line-through;
+    color: #8b949e;
+  }
+</style>
+</head>
+<body>
+
+<h1>MemeRush × Likwid — 正式立项前确认清单</h1>
+<p class="subtitle">涵盖技术可行性 / 合约安全 / 流动性现状 / 团队持续能力 / 内部合规，共 11 项问题</p>
+
+<div class="summary-bar">
+  <div class="summary-chip chip-blocker">🚨 Blocker × 3</div>
+  <div class="summary-chip chip-high">⚠️ High × 4</div>
+  <div class="summary-chip chip-medium">ℹ️ Medium × 4</div>
+  <div class="summary-chip chip-self">✅ 可自查 × 3 · 问 Likwid × 6 · 内部确认 × 2</div>
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">一、技术可行性</div>
+
+  <!-- Q1 -->
+  <div class="card" id="q1">
+    <div class="card-header">
+      <span class="q-num">Q1</span>
+      <span class="card-title">4meme 毕业 Token 可以直接在 Likwid 做多做空吗？</span>
+      <div class="badges">
+        <span class="badge badge-blocker">Blocker</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>4meme 毕业后会在 PancakeSwap v3 上创建池子（<code>fee=2500</code>，0.25%），但 Likwid 的 <code>LikwidMarginPosition</code> 合约要求：</p>
+      <ul>
+        <li>存在对应的 <strong>Likwid 池子</strong>（Vault），而非 PancakeSwap 池</li>
+        <li>池子有足够的 lend reserve + pair reserve（杠杆头寸所需资金）</li>
+        <li>池子的 base LP fee 不低于合约配置的最低阈值（标准档位 3000/5000 是安全的，2500 未经验证）</li>
+      </ul>
+      <p class="highlight">核心问题：Likwid 是否愿意为 4meme 毕业 Token 创建并维护 Vault？还是需要我们自己 <code>createPool()</code> + 注入流动性？</p>
+      <p>如果完全 permissionless，我们能否在技术上独立完成而无需团队配合？</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="card" id="q2">
+    <div class="card-header">
+      <span class="q-num">Q2</span>
+      <span class="card-title">4meme 毕业池的 fee=2500 是否满足 Likwid 的 fee 阈值？</span>
+      <div class="badges">
+        <span class="badge badge-high">High</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>Likwid 文档中 Integration Manual 给出的标准 fee 档位为 <code>3000</code>（0.3%）和 <code>5000</code>（0.5%）。4meme 毕业池使用 <code>fee=2500</code>（0.25%）。</p>
+      <p class="highlight">如果 Likwid 的 <code>LikwidMarginPosition</code> 合约的 fee 阈值 &gt; 2500，则该 Token 的池子对杠杆交易不可用。</p>
+      <p>需要向 Likwid 确认：合约当前配置的最低 fee 阈值是多少？或能否查询 <code>marginMinFee</code>（或类似）常量？</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认（文档未公开具体数值）</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="card" id="q3">
+    <div class="card-header">
+      <span class="q-num">Q3</span>
+      <span class="card-title">Likwid 是否提供 SDK 或 API？还是需要直接调合约？</span>
+      <div class="badges">
+        <span class="badge badge-medium">Medium</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>目前 Likwid 文档主要描述合约层调用（如 <code>openPosition()</code>、<code>closePosition()</code>），未找到官方 SDK 或 REST API 端点。</p>
+      <ul>
+        <li>是否有 npm 包或 SDK？</li>
+        <li>是否有 TypeScript 类型定义？</li>
+        <li>历史集成案例中，前端是如何封装合约调用的？</li>
+      </ul>
+      <p>若无 SDK，FE 工作量会增加约 2–3 天（ABI 封装 + 参数处理 + 错误码映射）。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">二、合约安全性</div>
+
+  <!-- Q4 -->
+  <div class="card" id="q4">
+    <div class="card-header">
+      <span class="q-num">Q4</span>
+      <span class="card-title">合约的 Owner/Admin 可以执行哪些高权限操作？有无 pause 或升级风险？</span>
+      <div class="badges">
+        <span class="badge badge-blocker">Blocker</span>
+        <span class="badge badge-self">可自查</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>需要通过 BSCScan 或 Dedaub 查看 <code>LikwidVault</code> 和 <code>LikwidMarginPosition</code> 合约源码，确认：</p>
+      <ul>
+        <li>是否有 <code>pause()</code> 函数？Owner 是 EOA 还是多签？</li>
+        <li>是否为 Proxy 合约（UUPS / Transparent Proxy）？能否被升级？</li>
+        <li>紧急情况下 LP 资金能否被 Owner 取走？</li>
+        <li>Timelock 控制了哪些函数？Timelock 延迟是多少？</li>
+      </ul>
+      <p class="highlight">若合约可被 Owner 单方面 pause 且 Owner 是 EOA，属于高风险，需评估接受程度。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待查源码（BSCScan LikwidVault: 0x065d44… · LikwidMarginPosition: 0x6bec0c…）</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="card" id="q5">
+    <div class="card-header">
+      <span class="q-num">Q5</span>
+      <span class="card-title">审计报告的具体范围？v2.2 变更是否包含在内？</span>
+      <div class="badges">
+        <span class="badge badge-high">High</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>已知 Likwid 有审计报告，但需确认：</p>
+      <ul>
+        <li>审计公司（Certik / Peckshield / Others）？报告是否公开？</li>
+        <li>审计时间是否覆盖当前 v2.2 部署版本？</li>
+        <li>是否有 critical/high 级别 findings 未修复？</li>
+        <li>上次审计后有无重要合约更新（是否需要重审）？</li>
+      </ul>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认（Likwid 文档未提供审计报告链接）</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">三、流动性现状</div>
+
+  <!-- Q6 -->
+  <div class="card" id="q6">
+    <div class="card-header">
+      <span class="q-num">Q6</span>
+      <span class="card-title">Likwid BSC 当前 TVL 和活跃池子数量是多少？</span>
+      <div class="badges">
+        <span class="badge badge-high">High</span>
+        <span class="badge badge-self">可自查</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>影响实际可用性的关键数据。可通过 DeFiLlama 和合约事件查询：</p>
+      <ul>
+        <li>BSC Likwid TVL 当前值（DeFiLlama: <a href="https://defillama.com/protocol/likwid" target="_blank" style="color:#388bfd">likwid 协议页</a>）</li>
+        <li>活跃 Vault 数量（有 lend reserve 的池子）</li>
+        <li>最近 30 天 BSC 上 open position 成交量</li>
+        <li>当前 TVL 是否足够支撑 $1000 量级的头寸？</li>
+      </ul>
+      <p class="highlight">若 TVL &lt; $100K 且活跃池少于 5 个，杠杆功能对用户几乎不可用，集成价值大打折扣。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待查 DeFiLlama</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="card" id="q7">
+    <div class="card-header">
+      <span class="q-num">Q7</span>
+      <span class="card-title">若需要我们自行注入流动性，初始注入方案是什么？</span>
+      <div class="badges">
+        <span class="badge badge-medium">Medium</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>如果 Likwid 不为 4meme 毕业 Token 主动建 Vault，我们需要：</p>
+      <ul>
+        <li>调用 <code>createPool()</code> 创建 Likwid 池子</li>
+        <li>向 Vault 注入 lend reserve（允许杠杆借贷）</li>
+        <li>注入 pair reserve（提供对手方流动性）</li>
+      </ul>
+      <p>问题：Binance Wallet 是否有预算为热门毕业 Token 主动注入初始流动性？谁来承担 IL 风险？</p>
+      <p class="note">备选：与 Likwid 谈合作，由 Likwid 负责维护热门 Token 的 Vault，BW 负责流量引导。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待讨论（内部决策 + Likwid 合作意向）</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">四、团队持续能力</div>
+
+  <!-- Q8 -->
+  <div class="card" id="q8">
+    <div class="card-header">
+      <span class="q-num">Q8</span>
+      <span class="card-title">目前有哪些项目已集成 Likwid？集成后有无维护支持？</span>
+      <div class="badges">
+        <span class="badge badge-medium">Medium</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>了解 Likwid 的真实生态状态，以及是否有集成先例可以参考：</p>
+      <ul>
+        <li>已有哪些 DApp / 钱包完成集成并正在使用？（非官方演示）</li>
+        <li>集成后遇到问题，响应速度如何？有无 support 渠道（不只是 TG 频道）？</li>
+        <li>文档最后更新日期？v2.2 是否有 changelog？</li>
+      </ul>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="card" id="q9">
+    <div class="card-header">
+      <span class="q-num">Q9</span>
+      <span class="card-title">Likwid 团队当前有多少人？未来 6 个月的维护和迭代计划？</span>
+      <div class="badges">
+        <span class="badge badge-high">High</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>TG 频道自五月初起无新消息，团队活跃度存疑。需了解：</p>
+      <ul>
+        <li>现在负责维护合约的工程师有几人？</li>
+        <li>未来 6 个月有哪些计划中的升级（如 Solana / Base 扩张）？</li>
+        <li>如果发现安全漏洞，响应和修复的 SLA 是多少？</li>
+        <li>是否有融资支持？能否维持运营？</li>
+      </ul>
+      <p class="highlight">即使合约是 permissionless 的，若团队消失导致文档/SDK 停止维护，长期集成成本会大幅上升。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="card" id="q10">
+    <div class="card-header">
+      <span class="q-num">Q10</span>
+      <span class="card-title">集成方的手续费分成机制？合作费是否会影响用户成本？</span>
+      <div class="badges">
+        <span class="badge badge-medium">Medium</span>
+        <span class="badge badge-ask">问 Likwid</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>Likwid 文档提到集成方可获得手续费分成（referral fee），需确认：</p>
+      <ul>
+        <li>分成比例是多少？是否需要在合约调用时传入 referral 地址？</li>
+        <li>是否有最低 TVL / 交易量门槛才能获得分成？</li>
+        <li>用户侧的总手续费（Likwid base fee + referral fee）是否仍具竞争力？</li>
+      </ul>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待确认</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">五、内部合规</div>
+
+  <!-- Q11 -->
+  <div class="card" id="q11">
+    <div class="card-header">
+      <span class="q-num">Q11</span>
+      <span class="card-title">Binance Wallet 是否有政策限制集成第三方杠杆/衍生品协议？</span>
+      <div class="badges">
+        <span class="badge badge-blocker">Blocker</span>
+        <span class="badge badge-internal">内部确认</span>
+      </div>
+    </div>
+    <div class="card-context">
+      <p>杠杆交易涉及金融监管合规，这是 Hackathon 原型以外、正式立项前必须确认的内部门槛：</p>
+      <ul>
+        <li>接入第三方杠杆协议是否需要 Compliance 审批？</li>
+        <li>是否有地区限制（如 US 用户不可见）？</li>
+        <li>Binance Wallet 现有的 Swap / 链上功能合规框架是否覆盖杠杆类产品？</li>
+        <li>若需要额外合规流程，估计需要多久？这是否影响发版时间线？</li>
+      </ul>
+      <p class="highlight">此问题是纯内部确认事项，与 Likwid 无关。建议在正式立项评审前先询问 Legal/Compliance 团队。</p>
+    </div>
+    <div class="answer-box">
+      <span class="answer-label">答案：</span>
+      <span class="answer-text">待内部确认（Legal / Compliance）</span>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" onchange="toggleCheck(this)"></div>
+  </div>
+
+</div>
+
+<!-- Progress widget -->
+<div class="progress" id="progress">
+  <div class="progress-title">确认进度</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-count" id="progress-count">0 / 11 已确认</div>
+</div>
+
+<script>
+  function toggleCheck(el) {
+    const card = el.closest('.card');
+    card.classList.toggle('checked', el.checked);
+    updateProgress();
+  }
+  function updateProgress() {
+    const total = document.querySelectorAll('input[type=checkbox]').length;
+    const done = document.querySelectorAll('input[type=checkbox]:checked').length;
+    document.getElementById('progress-count').textContent = done + ' / ' + total + ' 已确认';
+    document.getElementById('progress-fill').style.width = (done / total * 100) + '%';
+  }
+</script>
+</body>
+</html>
