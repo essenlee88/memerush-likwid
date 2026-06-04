@@ -39,6 +39,9 @@ body{background:#0a0f1e;color:#e2e8f0;height:700px;overflow:hidden}
   background:#1e3a5f;color:#60a5fa}
 .badge-gold{background:rgba(251,191,36,.15);color:#fbbf24}
 .col-sort{font-size:11px;color:#475569}
+.col-sort-select{font-size:11px;color:#94a3b8;background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:4px;padding:2px 6px;cursor:pointer;appearance:none;outline:none;transition:border-color .15s}
+.col-sort-select:hover{border-color:#64748b;color:#e2e8f0}
+.col-sort-select option{background:#0d1423;color:#e2e8f0}
 .token-list{flex:1;overflow-y:auto}
 
 /* ── Token row ── */
@@ -264,6 +267,16 @@ let colConfig = [
   { id:'migrated',   label:'✅ Migrated',    visible:true },
 ];
 
+/* ─── Meme-Fi Sort ──────────────────────────────────────────── */
+function parsePct(str){ if(!str) return -Infinity; const n=parseFloat(str.replace(/[+%\s]/g,'')); return isNaN(n)?-Infinity:n; }
+function sortMF(tokens, by){ return [...tokens].sort((a,b)=> parsePct(b[by])-parsePct(a[by])); }
+function onMemeFiSort(by){
+  const col=document.querySelector('.col[data-id="memefi"]'); if(!col) return;
+  const list=col.querySelector('#list-memefi'); if(!list) return;
+  list.innerHTML='';
+  sortMF(memefi, by).forEach(t=>list.appendChild(buildMemeFiRow(t)));
+}
+
 /* ─── Column builders ───────────────────────────────────────── */
 
 function ccls(c){ return c==='SOL' ? 'cb-sol' : 'cb-bsc'; }
@@ -329,8 +342,9 @@ function buildColumn(cfg){
 
   let label='', count=0, sort='', tokens=[], rowFn=buildStdRow;
   if(isMF){
-    label='💎 Meme-Fi'; count=memefi.length; sort='按 Discount ↓';
-    tokens=memefi; rowFn=buildMemeFiRow;
+    label='💎 Meme-Fi'; count=memefi.length;
+    sort=`<select class="col-sort-select" onchange="onMemeFiSort(this.value)"><option value="discount">按 Discount ↓</option><option value="chg24">按涨跌幅 ↓</option></select>`;
+    tokens=sortMF(memefi,'discount'); rowFn=buildMemeFiRow;
   } else if(cfg.id==='new'){
     label='🆕 New'; count=newTokens.length; sort='按市值 ↓'; tokens=newTokens;
   } else if(cfg.id==='finalizing'){
