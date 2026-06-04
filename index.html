@@ -278,13 +278,13 @@
     </div>
     <div class="q-block" style="border-left: 2px solid rgba(148,163,184,.08);">
       <div class="q-num">Q02 · 改变哪个用户行为</div>
-      <div class="q-title">从「发现后必须跳出 App 执行」变成「在 Meme-Fi Tab 里直接执行策略」</div>
+      <div class="q-title">从现货单向博弈，到链上策略对赌</div>
       <div class="q-body">
-        <strong>现在：</strong>在 MemeRush 发现机会 → 想加杠杆或做空 → 必须切换到其他 App 执行，流程断裂<br>
+        <strong>现在：</strong>Meme 玩家只能在现货上涨行情中低买高卖，缺乏对冲下跌或放大看涨收益的工具<br>
         <span class="arrow">↓</span>
-        <strong>之后：</strong>MemeRush 发现 Meme Token → 切换到旁边的 <strong>Meme-Fi Tab</strong> → 直接在 Likwid / Rise.rich 开仓执行策略<br>
-        <span style="color:#4ade80;font-size:12px;">发现层 + 策略执行层，同一个 App 内闭环</span><br>
-        <span style="color:#64748b;font-size:11.5px;">Meme-Fi 是独立 Tab，不影响现有 MemeRush 功能</span>
+        <strong>之后：</strong>在 Meme-Fi Tab 内，BSC 上杠杆做多或借币做空；Solana 上利用 floor 价锚点锁定利润、循环借贷加仓<br>
+        <span style="color:#4ade80;font-size:12px;">从被动的「持有与祈祷」，升级为主动的「风险管理与策略套利」</span><br>
+        <span style="color:#64748b;font-size:11.5px;">交易维度从一维（买/卖）扩展至二维（多/空 × 杠杆）</span>
       </div>
     </div>
     <div class="q-block" style="border-left: 2px solid rgba(148,163,184,.08);">
@@ -338,11 +338,10 @@
     <div class="ib-pre">洞察</div>
     <div class="ib-main">用一个功能修复 BSC Meme 市场的结构性缺陷，同时让 MemeRush 第一次对周期不敏感——从牛市专用工具，变成全天候主战场。</div>
     <div class="ib-sub">
-      Likwid 是部署在 BSC 的去中心化 AMM 协议，<strong>已上线 <a href="https://docs.likwid.fi/product/contract-address" target="_blank" style="color:#60a5fa;text-decoration:none;"><code>LikwidVault</code> + <code>LikwidMarginPosition</code></a></strong> 合约，支持任何已有 Vault 的 Token 做最高 5× 隔离保证金杠杆交易。MemeRush 毕业代币需<strong>单独接入 Likwid Vault</strong> 才能支持杠杆交易，初期覆盖范围有限；验证阶段以少量代币起步，证明需求后再扩大覆盖。<br><br>
-      <strong>Rise.rich</strong> 是 Solana 链上的结构化借贷协议，核心机制是「<strong>floor price = ATH × 50%</strong>」以及弹性的无清算借贷。用户可在 floor price 附近进行无清算风险的杠杆循环（loop），创造了独特的逢低吸纳策略生态。<br><br>
-      两个协议形成<strong>互补性战略组合</strong>：Likwid 在 BSC 链上为 MemeRush 提供精确、灵活的<strong>多空做市与对冲</strong>能力；而 Rise.rich 在 Solana 链上则提供了基于固定 floor 的<strong>底价策略和 loop 套利</strong>玩法。<br><br>
-      更关键的是：<strong>合约（margin trading）是圈内用户的母语</strong>。Margin Level、PnL、加减仓、清算价是他们每天在 Binance 合约上做的事，<strong>学习成本为零</strong>。我们做的不是引入新机制，而是第一次给 BSC Meme 用户提供「做空 / 对冲」的能力。<br><br>
-      结论：<strong>链上合约层无需自建</strong>——Likwid 合约已部署、已审计，不需要写一行 Solidity。前端集成复杂度取决于 MemeRush 现有 LiquidMesh 交易框架的兼容性，<strong>需要评估交易兼容方案后才能确认工期</strong>（详见风险 #1）。<br><br>
+      Meme-Fi 集成两条互补协议，首次为 Meme 玩家提供完整的链上策略工具箱——<strong>在 BSC 上可以做空，在 Solana 上可以锁定下行风险</strong>。<br><br>
+      <strong>Likwid（BSC）</strong>：<a href="https://docs.likwid.fi/product/contract-address" target="_blank" style="color:#60a5fa;text-decoration:none;"><code>LikwidVault</code> + <code>LikwidMarginPosition</code></a> 合约已部署，支持最高 5× 隔离保证金杠杆，用户可对有 Vault 的 Meme Token 做多或借币做空。初期覆盖少量已毕业代币，验证需求后逐步扩大。<br><br>
+      <strong>Rise.rich（Solana）</strong>：核心机制是引入了<strong>可计算的价格底线</strong>——floor price = ATH × 50%，只涨不跌，由协议储备金刚性背书。这给狂野的 Meme 市场一个<strong>前所未有的下行风险锚点</strong>。用户可基于 floor 价进行无清算借贷（抵押代币借出 SOL/USDC），在不卖出持仓的前提下锁定浮盈；或通过 loop 循环加仓放大持仓。<br><br>
+      <strong>关键洞察</strong>：两者组合让 Meme-Fi 成为一个策略生成层——BSC 链上可做空、可对冲；Solana 链上有 floor 锚点可借贷循环。Meme 用户第一次同时拥有双向策略工具。<strong>链上合约层无需自建</strong>，两个协议均已部署审计，前端集成即可（详见风险 #1）。<br><br>
       <details style="margin-top:12px;">
         <summary style="cursor:pointer;color:#60a5fa;font-size:13px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none;" onclick="this.parentElement.querySelector('iframe').src=this.parentElement.querySelector('iframe').src">
           <span style="font-size:10px;color:#3b82f6;transition:transform .2s;" class="analysis-arrow">▶</span>
