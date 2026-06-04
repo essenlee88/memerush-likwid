@@ -394,7 +394,8 @@
   <h2>🖥️ 解决机制 — 产品 Demo</h2>
 
   <div class="callout blue" style="margin-bottom:24px;">
-    <strong>两个改动，一个闭环</strong>：① Token 列表页：已接入 Likwid Vault 的代币（初期少量）卡片显示 <strong>L↑ / S↓</strong> 按钮，点击直接开仓 &nbsp;②&nbsp; My Positions：现有仓位管理面板扩展，展示杠杆仓位健康度、PnL、Repay/Close 操作
+    <strong>Meme-Fi Tab — 三个核心界面</strong>：① <strong>跨链榜单</strong>：BSC（Likwid 5× 杠杆）+ SOL（Rise.rich Floor 借贷）按算法综合评分排序，链标色区分，一屏对比 &nbsp;②&nbsp; <strong>Token 详情</strong>：SOL 代币展示当前价 / 地板价 / ATH + 一键借款面板；BSC 代币显示保证金开仓（做多/做空）&nbsp;③&nbsp; <strong>My Position · Meme-Fi Tab</strong>：BSC 杠杆仓位 + SOL 借贷仓位统一管理。<br><br>
+    <strong>现有 MemeRush 兼容</strong>：Rise.rich 上线的代币同步出现在 MemeRush Token List，可直接现货买入，无需跳转 —— Meme-Fi Tab 是策略升级，现货入口保持不变。
   </div>
 
   <div class="demo-frame-wrap">
@@ -402,13 +403,13 @@
       <div class="dc-dot" style="background:#ff5f57;"></div>
       <div class="dc-dot" style="background:#febc2e;"></div>
       <div class="dc-dot" style="background:#28c840;"></div>
-      <div class="dc-url">web3wallet.binance.com/meme-rush · Likwid Integration Demo</div>
+      <div class="dc-url">web3wallet.binance.com/meme-rush · Meme-Fi Tab Demo</div>
     </div>
-    <iframe src="likwid-demo.html" style="width:100%;height:660px;border:none;display:block;" title="MemeRush × Likwid Demo"></iframe>
+    <iframe src="memefi-demo.html" style="width:100%;height:680px;border:none;display:block;" title="Meme-Fi Tab Demo"></iframe>
   </div>
   <p class="demo-screen-caption">
-    切换两个 Tab：<strong>Token List（已 Migrate token 显示 L↑ / S↓ 杠杆入口）</strong> →  <strong>My Positions（Position Tracker + 健康度条 + Repay/Close）</strong><br>
-    仓位字段直接来自 <a href="https://docs.likwid.fi/whitepaper/protocol-mechanics/margin-position-mechanics" target="_blank" style="color:#60a5fa;text-decoration:none;">Likwid 合约</a>：Margin Amount · Debt · Supply/Borrow APY · Liq. Price · Margin Level · PnL
+    点击任意代币卡片查看详情面板 · 点击 <strong>📊 仓位</strong> 打开仓位抽屉 → 切换至 <strong>Meme-Fi Tab</strong> 查看跨协议仓位管理<br>
+    SOL 代币来自 <a href="https://docs.rise.rich" target="_blank" style="color:#9945FF;text-decoration:none;">Rise.rich</a> · BSC 代币来自 <a href="https://docs.likwid.fi" target="_blank" style="color:#60a5fa;text-decoration:none;">Likwid</a> · 综合评分 = 流动性深度 × 价格动量 × 地板价折扣
   </p>
 
   <div class="callout amber" style="margin-top:24px;">
