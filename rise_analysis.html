@@ -158,32 +158,34 @@
 
     <h3>一个具体例子</h3>
     <div class="example-box">
-      <div class="ex-title">场景：用户持有 $RUSH，想借出 SOL 但不卖出</div>
+      <div class="ex-title">完整流程：先买入，再选择时机借贷</div>
       <div class="ex-setup">
-        <div class="ex-param">持仓<span>10 $RUSH</span></div>
         <div class="ex-param">市价<span>2 SOL</span></div>
         <div class="ex-param">Floor<span>1 SOL</span></div>
         <div class="ex-param">LTV<span>80%</span></div>
       </div>
 
       <div class="ex-step">
-        <strong>① 计算可借额度（基于 floor，不是市价）</strong><br>
-        <code>1 SOL × 10 tokens × 80% = 8 SOL</code>
+        <strong>① 买入</strong><br>
+        用户花 <code>20 SOL</code> 买入 <code>10 $RUSH</code>（市价 2 SOL/token）。协议铸造 10 个新 token，其中 <code>1 SOL × 10 = 10 SOL</code> 注入 Floor Reserve Pool，剩余 10 SOL 进 Trading Pool。
       </div>
       <div class="ex-step">
-        <strong>② 用户借出 8 SOL，10 个 $RUSH 照持不动</strong><br>
-        市值 20 SOL 的持仓继续享受后续涨幅，同时手里多了 8 SOL 可用
+        <strong>② 持有，等待时机</strong><br>
+        代币上涨至 <code>3 SOL</code>，用户浮盈 10 SOL，但不想卖出（怕踏空后续涨幅）。此时选择借贷变现。
       </div>
       <div class="ex-step">
-        <strong>③ 最坏情形：价格从 2 SOL 暴跌至 floor（1 SOL）</strong><br>
-        抵押品当前价值 = <code>10 × 1 SOL = 10 SOL</code>，债务 = <code>8 SOL</code>，仍然 <code>10 > 8</code>
+        <strong>③ 借贷（基于 floor，不是市价）</strong><br>
+        可借额 = <code>floor × tokens × LTV = 1 × 10 × 80% = 8 SOL</code><br>
+        用户借出 8 SOL，10 个 $RUSH 继续持有，继续享受后续涨幅。
       </div>
-      <div class="ex-verdict">✓ 不触发清算。还清 8 SOL 后用户还剩 10 个 token（可按 floor 赎回 = 10 SOL），净亏的是市价跌幅，而不是被协议强制清算。</div>
+      <div class="ex-step">
+        <strong>④ 最坏情形：价格从 3 SOL 暴跌至 floor（1 SOL）</strong><br>
+        抵押品硬底价值 = <code>10 × 1 SOL = 10 SOL</code>，债务 = <code>8 SOL</code>，仍然 <code>10 > 8</code>
+      </div>
+      <div class="ex-verdict">✓ 不触发清算。还清 8 SOL 后用户还剩 10 个 token，净损失是市价下跌带来的浮亏，而不是被协议强制清算吃掉本金。</div>
 
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid #1e2a3a;font-size:13px;color:#475569;">
-        <strong style="color:#94a3b8;">对比传统 DeFi</strong>（如果按市价计算借贷）：同样 10 tokens，市价 2 SOL，LTV 80% → 可借 16 SOL。
-        价格跌到 1 SOL 时抵押品价值 = 10 SOL &lt; 债务 16 SOL → <span style="color:#f87171;">触发清算，仓位被强平</span>。
-        Rise.rich 用 floor 而非市价作为估值基准，从根源上消除了这个场景。
+        <strong style="color:#94a3b8;">对比传统 DeFi（按市价估值）</strong>：同样 10 tokens，市价 3 SOL，LTV 80% → 可借 24 SOL。价格跌到 1 SOL 时抵押品 = 10 SOL &lt; 债务 24 SOL → <span style="color:#f87171;">触发清算，仓位被强平</span>。Rise.rich 以 floor 而非市价估值，借得少但永远不被清算。
       </div>
     </div>
 
