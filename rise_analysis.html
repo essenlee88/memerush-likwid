@@ -66,6 +66,16 @@
     .highlight-box p { font-size: 14px; color: #a5b4fc; margin: 0; line-height: 1.7; }
     .warning-box { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); border-left: 3px solid #ef4444; border-radius: 10px; padding: 18px 20px; margin: 16px 0; }
     .warning-box p { font-size: 14px; color: #fca5a5; margin: 0; line-height: 1.7; }
+    .example-box { background: #0a1628; border: 1px solid #1e3a5f; border-left: 3px solid #3b82f6; border-radius: 10px; padding: 20px 24px; margin: 20px 0; }
+    .example-box .ex-title { font-size: 12px; font-weight: 700; color: #60a5fa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+    .example-box .ex-setup { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1e2a3a; }
+    .example-box .ex-param { font-size: 13px; color: #64748b; }
+    .example-box .ex-param span { font-family: 'SF Mono', Consolas, monospace; color: #93c5fd; background: rgba(147,197,253,0.08); padding: 1px 7px; border-radius: 4px; margin-left: 4px; }
+    .example-box .ex-step { margin-bottom: 10px; font-size: 14px; color: #94a3b8; padding-left: 12px; border-left: 2px solid #1e3a5f; }
+    .example-box .ex-step strong { color: #e2e8f0; }
+    .example-box .ex-step code { font-family: 'SF Mono', Consolas, monospace; color: #fbbf24; background: rgba(251,191,36,0.08); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+    .example-box .ex-verdict { margin-top: 14px; padding: 10px 14px; background: rgba(34,197,94,0.07); border-radius: 8px; font-size: 13px; color: #86efac; }
+    .example-box .ex-verdict.bad { background: rgba(239,68,68,0.07); color: #fca5a5; }
     /* details / summary */
     details { margin: 20px 0 0; }
     summary { cursor: pointer; color: #60a5fa; font-size: 14px; padding: 10px 0; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
@@ -144,6 +154,37 @@
           <tr><td>还款</td><td>随时还，无锁定期，无到期日</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <h3>一个具体例子</h3>
+    <div class="example-box">
+      <div class="ex-title">场景：用户持有 $RUSH，想借出 SOL 但不卖出</div>
+      <div class="ex-setup">
+        <div class="ex-param">持仓<span>10 $RUSH</span></div>
+        <div class="ex-param">市价<span>2 SOL</span></div>
+        <div class="ex-param">Floor<span>1 SOL</span></div>
+        <div class="ex-param">LTV<span>80%</span></div>
+      </div>
+
+      <div class="ex-step">
+        <strong>① 计算可借额度（基于 floor，不是市价）</strong><br>
+        <code>1 SOL × 10 tokens × 80% = 8 SOL</code>
+      </div>
+      <div class="ex-step">
+        <strong>② 用户借出 8 SOL，10 个 $RUSH 照持不动</strong><br>
+        市值 20 SOL 的持仓继续享受后续涨幅，同时手里多了 8 SOL 可用
+      </div>
+      <div class="ex-step">
+        <strong>③ 最坏情形：价格从 2 SOL 暴跌至 floor（1 SOL）</strong><br>
+        抵押品当前价值 = <code>10 × 1 SOL = 10 SOL</code>，债务 = <code>8 SOL</code>，仍然 <code>10 > 8</code>
+      </div>
+      <div class="ex-verdict">✓ 不触发清算。还清 8 SOL 后用户还剩 10 个 token（可按 floor 赎回 = 10 SOL），净亏的是市价跌幅，而不是被协议强制清算。</div>
+
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid #1e2a3a;font-size:13px;color:#475569;">
+        <strong style="color:#94a3b8;">对比传统 DeFi</strong>（如果按市价计算借贷）：同样 10 tokens，市价 2 SOL，LTV 80% → 可借 16 SOL。
+        价格跌到 1 SOL 时抵押品价值 = 10 SOL &lt; 债务 16 SOL → <span style="color:#f87171;">触发清算，仓位被强平</span>。
+        Rise.rich 用 floor 而非市价作为估值基准，从根源上消除了这个场景。
+      </div>
     </div>
 
     <h3>为什么永不清算</h3>
