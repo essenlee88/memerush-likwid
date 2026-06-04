@@ -3,1366 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meme-Fi 交易终端</title>
+    <title>MemeRush | Meme-Fi Demo</title>
     <style>
-        :root {
-          --bg-deep:#0a0b0e; --bg-base:#0f1011; --bg-card:#111214; --bg-panel:#151619;
-          --bg-input:#1a1c20; --border:#2b2f38; --border-sub:#1e2028;
-          --yellow:#F0B90B; --green:#0ECB81; --red:#F6465D; --purple:#9945FF; --indigo:#a5b4fc;
-          --t1:#e8e8e8; --t2:#848e9c; --t3:#5c6370;
-        }
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:system-ui,-apple-system,'PingFang SC',sans-serif;font-size:13px;background:var(--bg-deep);color:var(--t1);height:100vh;overflow:hidden}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
-        /* 全局布局容器 */
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* 顶部导航 */
-        .top-nav {
-            height: 44px;
-            background: var(--bg-base);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            flex-shrink: 0;
-        }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-right: 24px;
-            font-weight: bold;
-            color: var(--yellow);
-        }
-        .nav-brand .dot {
-            color: var(--yellow);
-            font-size: 18px;
-        }
-        .nav-tabs {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-        }
-        .nav-tab {
-            color: var(--t2);
-            cursor: pointer;
-            padding: 12px 0;
-            position: relative;
-            height: 44px;
-            line-height: 20px;
-        }
-        .nav-tab:hover { color: var(--t1); }
-        .nav-tab.active { color: var(--yellow); }
-        .nav-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--yellow);
-        }
-        .badge-new {
-            background: var(--red);
-            color: white;
-            font-size: 10px;
-            padding: 1px 4px;
-            border-radius: 4px;
-            margin-left: 4px;
-            vertical-align: top;
-        }
-        .wallet-info { color: var(--t2); font-size: 12px; }
-        .wallet-sol { color: var(--t1); font-weight: 500; }
-
-        /* 行情条 */
-        .ticker-bar {
-            height: 32px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-sub);
-            overflow: hidden;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-        }
-        .marquee {
-            white-space: nowrap;
-            display: inline-block;
-            animation: marquee 30s linear infinite;
-            font-size: 12px;
-        }
-        .ticker-item { margin: 0 12px; display: inline-block; }
-        .positive { color: var(--green); }
-        .negative { color: var(--red); }
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        /* 主内容区域 */
-        .content-row {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            height: calc(100vh - 76px);
-        }
-
-        /* 左侧边栏 */
-        .left-sidebar {
-            width: 280px;
-            background: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            overflow-y: auto;
-        }
-        .sidebar-header { padding: 14px 16px 10px; }
-        .sidebar-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-        .sidebar-subtitle { color: var(--t2); font-size: 12px; }
-        .sidebar-tabs {
-            display: flex;
-            padding: 0 12px;
-            border-bottom: 1px solid var(--border-sub);
-        }
-        .sidebar-tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px 4px;
-            color: var(--t2);
-            cursor: pointer;
-            position: relative;
-            font-size: 12px;
-        }
-        .sidebar-tab:hover { color: var(--t1); }
-        .sidebar-tab.active { color: var(--yellow); }
-        .sidebar-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 4px;
-            right: 4px;
-            height: 2px;
-            background: var(--yellow);
-            border-radius: 2px;
-        }
-        .sidebar-content { padding: 10px 14px; flex: 1; }
-        .position-section { margin-bottom: 14px; }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--t2);
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .position-row {
-            display: flex;
-            align-items: center;
-            padding: 6px 6px;
-            border-radius: 4px;
-            margin-bottom: 3px;
-            cursor: pointer;
-            gap: 4px;
-        }
-        .position-row:hover { background: var(--bg-input); }
-        .pos-name { flex: 2; font-size: 12px; font-weight: 500; }
-        .pos-dir { flex: 2; color: var(--t2); font-size: 11px; }
-        .pos-change { flex: 1.5; text-align: right; font-size: 12px; font-weight: 600; }
-        .pos-val { flex: 2; text-align: right; font-size: 12px; color: var(--t2); }
-        .position-controls {
-            display: flex;
-            gap: 8px;
-            padding: 12px 14px;
-            margin-top: auto;
-        }
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--t2);
-            padding: 7px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
-            font-size: 12px;
-        }
-        .btn-ghost:hover { background: var(--bg-input); color: var(--t1); }
-        .btn-outline-red {
-            background: transparent;
-            border: 1px solid var(--red);
-            color: var(--red);
-            padding: 7px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
-            font-size: 12px;
-        }
-        .btn-outline-red:hover { background: rgba(246,70,93,0.1); }
-
-        /* 中心区域 */
-        .center-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        body {
+            background-color: #0a0f1e;
+            color: #e2e8f0;
+            height: 700px;
+            min-width: 1200px;
             overflow: hidden;
         }
-        .center-tabs {
-            height: 40px;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            gap: 16px;
-            flex-shrink: 0;
-        }
-        .center-tab {
-            color: var(--t2);
-            cursor: pointer;
-            padding: 10px 0;
-            position: relative;
-            font-size: 13px;
-            height: 40px;
-            line-height: 20px;
-            white-space: nowrap;
-        }
-        .center-tab:hover { color: var(--t1); }
-        .center-tab.active { color: var(--yellow); }
-        .center-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--yellow);
-        }
-        .filter-bar {
-            height: 40px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-sub);
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            flex-shrink: 0;
-            gap: 8px;
-        }
-        .filter-left { display: flex; align-items: center; gap: 6px; flex: 1; }
-        .time-pill {
-            padding: 3px 9px;
-            border-radius: 12px;
-            background: var(--bg-input);
-            color: var(--t2);
-            cursor: pointer;
-            font-size: 12px;
-            border: 1px solid transparent;
-            transition: all .12s;
-        }
-        .time-pill.active {
-            background: rgba(240,185,11,0.15);
-            color: var(--yellow);
-            border-color: rgba(240,185,11,0.4);
-        }
-        .chain-pill {
-            padding: 3px 9px;
-            border-radius: 12px;
-            background: var(--bg-input);
-            color: var(--t2);
-            cursor: pointer;
-            font-size: 12px;
-            border: 1px solid transparent;
-            transition: all .12s;
-        }
-        .chain-pill.active {
-            border-color: var(--border);
-            color: var(--t1);
-            background: var(--bg-panel);
-        }
-        .filter-sep { color: var(--t3); }
-        .filter-right { display: flex; align-items: center; gap: 6px; }
-        .btn-filter {
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: var(--bg-input);
-            color: var(--t2);
-            cursor: pointer;
-            border: 1px solid var(--border);
-            font-size: 12px;
-        }
-        .btn-filter:hover { background: var(--bg-panel); color: var(--t1); }
 
-        /* 代币表格 */
-        .token-table-container { flex: 1; overflow-y: auto; }
-        .token-table { width: 100%; border-collapse: collapse; min-width: 760px; }
-        .token-table thead {
-            position: sticky;
-            top: 0;
-            background: var(--bg-panel);
-            z-index: 10;
-        }
-        .token-table th {
-            color: var(--t2);
-            font-weight: 500;
-            text-align: left;
-            padding: 8px 6px;
-            border-bottom: 1px solid var(--border);
-            height: 34px;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .token-table th:nth-child(1) { width: 32px; }
-        .token-table th:nth-child(2) { width: 140px; }
-        .token-table th:nth-child(3) { width: 90px; }
-        .token-table th:nth-child(4) { width: 86px; }
-        .token-table th:nth-child(5) { width: 120px; }
-        .token-table th:nth-child(6) { width: 96px; }
-        .token-table th:nth-child(7) { width: 86px; }
-        .token-table th:nth-child(8) { width: 68px; }
-        .token-table th:nth-child(9) { width: 68px; }
-        .token-table th:nth-child(10) { width: 96px; }
-        .token-table tbody tr {
-            height: 38px;
-            cursor: pointer;
-            transition: background .1s;
-        }
-        .token-table tbody tr:hover { background: var(--bg-input); }
-        .token-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.01); }
-        .token-table tbody tr:nth-child(even):hover { background: var(--bg-input); }
-        .token-table td {
-            padding: 4px 6px;
-            border-bottom: 1px solid var(--border-sub);
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .star { color: var(--yellow); cursor: pointer; user-select: none; font-size: 14px; }
-        .star.empty { color: var(--t3); }
-        .token-cell { display: flex; align-items: center; gap: 6px; }
-        .token-emoji { font-size: 15px; }
-        .token-name { font-weight: 600; font-size: 13px; }
-        .protocol-cell { display: flex; align-items: center; gap: 5px; font-size: 12px; }
-        .chain-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-        .bsc-dot { background: var(--yellow); }
-        .sol-dot { background: var(--indigo); }
-        .positive-change { color: var(--green); font-weight: 600; }
-        .negative-change { color: var(--red); font-weight: 600; }
-        .discount-pill {
-            background: rgba(246,70,93,0.2);
-            color: var(--red);
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-            border: 1px solid rgba(246,70,93,0.3);
-        }
-        .action-cell { display: flex; gap: 4px; align-items: center; }
-        .btn-long {
-            background: transparent;
-            border: 1px solid rgba(14,203,129,0.5);
-            color: var(--green);
-            padding: 2px 7px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 11px;
-            height: 24px;
-            white-space: nowrap;
-        }
-        .btn-long:hover { background: rgba(14,203,129,0.1); }
-        .btn-short {
-            background: transparent;
-            border: 1px solid rgba(246,70,93,0.5);
-            color: var(--red);
-            padding: 2px 7px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 11px;
-            height: 24px;
-        }
-        .btn-short:hover { background: rgba(246,70,93,0.1); }
-        .btn-borrow {
-            background: transparent;
-            border: 1px solid rgba(153,69,255,0.5);
-            color: var(--purple);
-            padding: 2px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 11px;
-            height: 24px;
-        }
-        .btn-borrow:hover { background: rgba(153,69,255,0.1); }
-
-        /* 代币详情视图 */
-        .token-detail-view {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .detail-header {
+        /* 导航栏 */
+        .navbar {
+            background-color: #0d1423;
+            border-bottom: 1px solid #1e293b;
+            padding: 0 24px;
+            height: 52px;
             display: flex;
             align-items: center;
-            padding: 10px 14px;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        .btn-back {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--t2);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .btn-back:hover { background: var(--bg-input); color: var(--t1); }
-        .detail-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
-            font-weight: 700;
-        }
-        .detail-chain { color: var(--t2); font-size: 13px; font-weight: normal; }
-        .detail-stats {
-            display: flex;
-            gap: 16px;
-            margin-left: auto;
-        }
-        .detail-stat { text-align: right; }
-        .detail-stat-label { color: var(--t2); font-size: 11px; }
-        .detail-stat-value { font-size: 13px; font-weight: 600; margin-top: 1px; }
-        .detail-body {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            padding: 14px;
-            gap: 14px;
-            background: var(--bg-deep);
-        }
-        .chart-container {
-            flex: 3;
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-        }
-        .chart-title { color: var(--t2); font-size: 12px; margin-bottom: 10px; }
-        .chart-svg { width: 100%; flex: 1; }
-        .stats-card {
-            flex: 1.6;
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            overflow-y: auto;
-        }
-        .protocol-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 14px;
-        }
-        .badge-bsc {
-            background: rgba(240,185,11,0.15);
-            color: var(--yellow);
-            border: 1px solid rgba(240,185,11,0.3);
-        }
-        .badge-sol {
-            background: rgba(153,69,255,0.15);
-            color: var(--purple);
-            border: 1px solid rgba(153,69,255,0.3);
-        }
-        .stats-row {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-sub);
-            font-size: 12px;
         }
-        .stats-row:last-child { border-bottom: none; }
-        .stats-label { color: var(--t2); }
-        .stats-value { font-weight: 600; }
-        .stats-check { color: var(--green); font-weight: 600; }
-
-        /* 右侧面板 */
-        .right-panel {
-            width: 230px;
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border);
-            display: none;
-            flex-direction: column;
-            flex-shrink: 0;
-            overflow-y: auto;
-        }
-        .panel-header {
-            padding: 14px 14px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-sub);
-        }
-        .panel-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-sub);
-        }
-        .panel-tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px 4px;
-            background: transparent;
-            color: var(--t2);
-            cursor: pointer;
-            font-size: 12px;
-            border-bottom: 2px solid transparent;
-            transition: all .12s;
-        }
-        .panel-tab:hover { color: var(--t1); }
-        .panel-tab.active {
-            color: var(--t1);
-            border-bottom-color: var(--purple);
-        }
-        .panel-content {
-            padding: 12px 14px;
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .panel-content.active { display: flex; }
-        .input-label {
-            color: var(--t2);
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
-        .amount-input {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 8px 10px;
-            color: var(--t1);
-            font-size: 13px;
-            font-family: inherit;
-        }
-        .amount-input:focus { outline: none; border-color: var(--purple); }
-        .calc-box {
-            background: var(--bg-deep);
-            border-radius: 4px;
-            padding: 9px 10px;
-        }
-        .calc-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        .calc-row:last-child { margin-bottom: 0; }
-        .calc-label { color: var(--t2); }
-        .calc-value { font-weight: 600; }
-        .calc-highlight { color: var(--indigo); font-weight: 700; font-size: 13px; }
-        .leverage-buttons {
-            display: flex;
-            gap: 4px;
-        }
-        .leverage-btn {
-            flex: 1;
-            padding: 5px 2px;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--t2);
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-            font-size: 12px;
-            transition: all .12s;
-        }
-        .leverage-btn.active {
-            border-color: var(--yellow);
-            color: var(--yellow);
-            background: rgba(240,185,11,0.1);
-        }
-        .btn-primary {
-            background: var(--purple);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            width: 100%;
-            font-family: inherit;
-            transition: opacity .12s;
-        }
-        .btn-primary:hover { opacity: .85; }
-        .btn-green-full {
-            background: var(--green);
-            color: var(--bg-deep);
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 13px;
-            width: 100%;
-            font-family: inherit;
-            transition: opacity .12s;
-        }
-        .btn-green-full:hover { opacity: .85; }
-        .btn-repay {
-            background: rgba(165,180,252,0.15);
-            color: var(--indigo);
-            border: 1px solid rgba(165,180,252,0.3);
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            width: 100%;
-            font-family: inherit;
-            transition: opacity .12s;
-        }
-        .btn-repay:hover { opacity: .8; }
-        .direction-buttons { display: flex; gap: 6px; }
-        .direction-btn {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            border: 1px solid var(--border);
-            background: var(--bg-input);
-            color: var(--t2);
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all .12s;
-        }
-        .direction-btn.long.active {
-            border-color: rgba(14,203,129,0.5);
-            color: var(--green);
-            background: rgba(14,203,129,0.1);
-        }
-        .direction-btn.short.active {
-            border-color: rgba(246,70,93,0.5);
-            color: var(--red);
-            background: rgba(246,70,93,0.1);
-        }
-        .summary-box {
-            background: var(--bg-deep);
-            border-radius: 4px;
-            padding: 9px 10px;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        .summary-row:last-child { margin-bottom: 0; }
-        .lever-counter {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-        .lever-btn {
+        .navbar-logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon {
             width: 28px; height: 28px;
-            border-radius: 50%;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--t1);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            user-select: none;
-        }
-        .lever-btn:hover { background: var(--bg-panel); }
-        .lever-value { min-width: 40px; text-align: center; font-size: 22px; font-weight: 700; }
-        .feature-note {
-            font-size: 11px;
-            color: var(--green);
-            line-height: 1.5;
-        }
-        .risk-note {
-            font-size: 11px;
-            color: #f6a30b;
-            line-height: 1.5;
-        }
-        .outstanding-box {
-            background: var(--bg-deep);
-            border-radius: 4px;
-            padding: 10px;
-        }
-        .outstanding-label { color: var(--t2); font-size: 11px; margin-bottom: 4px; }
-        .outstanding-value { font-size: 16px; font-weight: 700; color: var(--indigo); }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
             border-radius: 6px;
-            padding: 10px 16px;
-            color: var(--t1);
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            font-size: 13px;
-            max-width: 260px;
         }
+        .logo-text {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(to right, #fbbf24, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .wallet-connect-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white; border: none; border-radius: 6px;
+            padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .wallet-connect-btn:hover { opacity: 0.9; }
+
+        /* 主内容 */
+        .main-content {
+            padding: 16px 20px 0;
+            height: calc(100% - 88px);
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .columns-container {
+            display: flex;
+            gap: 14px;
+            height: 100%;
+            min-width: min-content;
+        }
+
+        /* 通用列 */
+        .column {
+            flex: 0 0 290px;
+            background-color: #0d1423;
+            border-radius: 10px;
+            border: 1px solid #1e293b;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Meme-Fi 列高亮 */
+        .column-memefi {
+            flex: 0 0 310px;
+            border: 2px solid #fbbf24;
+            border-left-width: 3px;
+            box-shadow: 0 0 24px rgba(251,191,36,0.12), inset 0 0 0 1px rgba(251,191,36,0.05);
+        }
+
+        /* 列头 */
+        .column-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(13,20,35,0.95);
+            flex-shrink: 0;
+        }
+        .column-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+        .badge {
+            background-color: #1e3a5f; color: #60a5fa;
+            font-size: 11px; padding: 2px 7px; border-radius: 8px; font-weight: 600;
+        }
+        .badge-gold { background-color: rgba(251,191,36,0.15); color: #fbbf24; }
+        .sort-indicator { font-size: 11px; color: #64748b; }
+
+        /* 代币列表 */
+        .token-list { flex: 1; overflow-y: auto; padding: 2px 0; }
+
+        /* 代币行 */
+        .token-row {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(30,41,59,0.6);
+            transition: background-color 0.12s;
+        }
+        .token-row:hover { background-color: rgba(255,255,255,0.03); }
+        .token-row-memefi { cursor: pointer; }
+        .token-row-memefi:hover { background-color: rgba(139,92,246,0.06); }
+
+        .token-name-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .token-name { font-weight: 600; font-size: 13px; }
+
+        .chain-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 6px;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .chain-sol { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.35); }
+        .chain-bsc { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+
+        .token-data { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .data-item { display: flex; justify-content: space-between; align-items: center; }
+        .label { color: #64748b; font-size: 11px; }
+        .value { font-size: 12px; font-weight: 500; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+        .neutral { color: #94a3b8; }
+
+        /* 底部注释 */
+        .footer-note {
+            padding: 10px 20px;
+            text-align: center; color: #475569; font-size: 11px;
+            border-top: 1px solid #1e293b; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 右侧详情面板 */
+        .detail-panel {
+            position: fixed; top: 0; right: 0;
+            width: 300px; height: 100%;
+            background-color: #0d1423;
+            border-left: 1px solid rgba(251,191,36,0.3);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column;
+        }
+        .detail-panel.active { transform: translateX(0); }
+
+        .panel-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(135deg, rgba(251,191,36,0.05), transparent);
+        }
+        .panel-title { font-size: 15px; font-weight: 600; }
+        .close-btn {
+            background: none; border: none; color: #64748b;
+            font-size: 18px; cursor: pointer; width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+
+        .panel-content { flex: 1; padding: 18px; overflow-y: auto; }
+
+        .info-item { margin-bottom: 16px; }
+        .info-label { color: #64748b; font-size: 12px; margin-bottom: 4px; }
+        .info-value { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        .discount-tag {
+            font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+            background: rgba(16,185,129,0.15); color: #10b981;
+        }
+        .protocol-tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; }
+        .protocol-sol { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .protocol-bsc { background: rgba(251,191,36,0.15); color: #fbbf24; }
+
+        .divider { height: 1px; background: #1e293b; margin: 16px 0; }
+
+        .action-btn {
+            width: 100%; padding: 11px; border-radius: 7px;
+            font-weight: 600; font-size: 13px; border: none; cursor: pointer;
+            transition: opacity 0.15s; margin-bottom: 8px; text-align: center;
+        }
+        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.07); color: #cbd5e1; border: 1px solid #334155; }
+        .btn-long { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+        .btn-short { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; }
+        .action-btn:hover { opacity: 0.88; }
+
+        .leverage-row { display: flex; gap: 6px; margin: 12px 0; }
+        .lev-btn {
+            flex: 1; padding: 7px 0; background: rgba(255,255,255,0.05);
+            border: 1px solid #334155; border-radius: 5px; color: #94a3b8;
+            font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
+            transition: all 0.12s;
+        }
+        .lev-btn.active { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #60a5fa; }
+        .lev-btn:hover:not(.active) { background: rgba(255,255,255,0.08); }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body>
-    <div class="app">
-        <!-- 顶部导航 -->
-        <div class="top-nav">
-            <div class="nav-brand">
-                <span class="dot">●</span>
-                <span>Binance Web3</span>
-            </div>
-            <div class="nav-tabs">
-                <div class="nav-tab">现货交易</div>
-                <div class="nav-tab">MemeRush</div>
-                <div class="nav-tab active">💎 Meme-Fi <span class="badge-new">NEW</span></div>
-            </div>
-            <div class="wallet-info">
-                0x1A2...f3E4 · <span class="wallet-sol">12.45 SOL / 0.89 BNB</span>
-            </div>
-        </div>
 
-        <!-- 行情条 -->
-        <div class="ticker-bar">
-            <div class="marquee">
-                <span class="ticker-item">🌊 RUSH <span class="positive">+120.5%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🌙 MOON <span class="positive">+42.3%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐸 PEPE <span class="negative">-4.6%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐕 DOGE2 <span class="positive">+8.2%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐸 FROG <span class="positive">+91.2%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🎭 DEGEN <span class="positive">+8.4%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🌊 RUSH <span class="positive">+120.5%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🌙 MOON <span class="positive">+42.3%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐸 PEPE <span class="negative">-4.6%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐕 DOGE2 <span class="positive">+8.2%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🐸 FROG <span class="positive">+91.2%</span></span>
-                <span class="ticker-item" style="color:var(--t3)">·</span>
-                <span class="ticker-item">🎭 DEGEN <span class="positive">+8.4%</span></span>
-            </div>
-        </div>
-
-        <!-- 主内容 -->
-        <div class="content-row">
-            <!-- 左侧边栏 -->
-            <div class="left-sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-title">我的仓位</div>
-                    <div class="sidebar-subtitle">总资产 2,456.78 USDT</div>
-                </div>
-                <div class="sidebar-tabs">
-                    <div class="sidebar-tab" onclick="switchSidebarTab(this)">现货</div>
-                    <div class="sidebar-tab" onclick="switchSidebarTab(this)">合约</div>
-                    <div class="sidebar-tab active" onclick="switchSidebarTab(this)">💎 Meme-Fi</div>
-                </div>
-                <div class="sidebar-content">
-                    <div class="position-section">
-                        <div class="section-header">
-                            <span>🟡</span><span>BSC · Likwid</span>
-                            <span style="color:var(--t3);font-size:10px;margin-left:auto;">隔离保证金</span>
-                        </div>
-                        <div class="position-row" onclick="openToken('pepe')">
-                            <div class="pos-name">🐸 PEPE</div>
-                            <div class="pos-dir">做多 3×</div>
-                            <div class="pos-change positive">+12.4%</div>
-                            <div class="pos-val">¥234.50</div>
-                        </div>
-                        <div class="position-row" onclick="openToken('cats')">
-                            <div class="pos-name">🐱 CATS</div>
-                            <div class="pos-dir">做多 2×</div>
-                            <div class="pos-change negative">-3.2%</div>
-                            <div class="pos-val">¥89.20</div>
-                        </div>
-                    </div>
-                    <div class="position-section">
-                        <div class="section-header">
-                            <span>🔵</span><span>SOL · Rise.rich</span>
-                            <span style="color:var(--t3);font-size:10px;margin-left:auto;">永久地板价</span>
-                        </div>
-                        <div class="position-row" onclick="openToken('rush')">
-                            <div class="pos-name">🌊 RUSH</div>
-                            <div class="pos-dir">已借 0.8 SOL · ×3</div>
-                            <div class="pos-change positive">+28.4%</div>
-                            <div class="pos-val">¥456.80</div>
-                        </div>
-                        <div class="position-row" onclick="openToken('moon')">
-                            <div class="pos-name">🌙 MOON</div>
-                            <div class="pos-dir">持有中</div>
-                            <div class="pos-change positive">+5.8%</div>
-                            <div class="pos-val">¥123.40</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="position-controls">
-                    <button class="btn-outline-red" onclick="showToast('⚠ 一键平仓：Demo 模式')">一键平仓</button>
-                    <button class="btn-ghost" onclick="showToast('管理仓位')">管理仓位</button>
-                </div>
-            </div>
-
-            <!-- 中心区域 -->
-            <div class="center-panel">
-                <div class="center-tabs">
-                    <div class="center-tab" onclick="switchCenterTab(this)">热门</div>
-                    <div class="center-tab" onclick="switchCenterTab(this)">聪明钱</div>
-                    <div class="center-tab" onclick="switchCenterTab(this)">社交热度</div>
-                    <div class="center-tab" onclick="switchCenterTab(this)">Alpha</div>
-                    <div class="center-tab" onclick="switchCenterTab(this)">证券代币</div>
-                    <div class="center-tab active" onclick="switchCenterTab(this)">💎 Meme-Fi</div>
-                </div>
-                <div class="filter-bar">
-                    <div class="filter-left">
-                        <div class="time-pill active" onclick="switchTimePill(this)">1h</div>
-                        <div class="time-pill" onclick="switchTimePill(this)">4h</div>
-                        <div class="time-pill" onclick="switchTimePill(this)">24h</div>
-                        <span class="filter-sep">·</span>
-                        <div class="chain-pill active" onclick="toggleChainPill(this)">🟡 BSC</div>
-                        <div class="chain-pill active" onclick="toggleChainPill(this)">🔵 SOL</div>
-                    </div>
-                    <div class="filter-right">
-                        <button class="btn-filter">⚡ 筛选</button>
-                        <button class="btn-filter">👁 隐藏</button>
-                    </div>
-                </div>
-
-                <!-- 代币列表 -->
-                <div class="token-table-container" id="tokenTableContainer">
-                    <table class="token-table">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>代币</th>
-                                <th>协议</th>
-                                <th>流动性</th>
-                                <th>持有者/币安持有</th>
-                                <th>价格</th>
-                                <th>地板价</th>
-                                <th>1h%</th>
-                                <th>折价</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tokenTableBody"></tbody>
-                    </table>
-                </div>
-
-                <!-- 代币详情视图 -->
-                <div class="token-detail-view" id="tokenDetailView">
-                    <div class="detail-header">
-                        <button class="btn-back" onclick="closeToken()">← 返回列表</button>
-                        <div class="detail-title">
-                            <span id="detailEmoji"></span>
-                            <span id="detailName"></span>
-                            <span class="detail-chain" id="detailChain"></span>
-                        </div>
-                        <div class="detail-stats">
-                            <div class="detail-stat">
-                                <div class="detail-stat-label">当前价格</div>
-                                <div class="detail-stat-value" id="detailPrice"></div>
-                            </div>
-                            <div class="detail-stat" id="detailFloorStat">
-                                <div class="detail-stat-label">地板价</div>
-                                <div class="detail-stat-value" style="color:var(--yellow)" id="detailFloor"></div>
-                            </div>
-                            <div class="detail-stat">
-                                <div class="detail-stat-label">1h涨跌</div>
-                                <div class="detail-stat-value" id="detailChange"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="detail-body">
-                        <div class="chart-container">
-                            <div class="chart-title">1h 价格走势</div>
-                            <svg class="chart-svg" id="chartSvg"></svg>
-                        </div>
-                        <div class="stats-card" id="statsCard"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 右侧面板 -->
-            <div class="right-panel" id="rightPanel">
-                <!-- SOL / Rise.rich 借贷面板 -->
-                <div id="panelSol" style="display:none;flex-direction:column;flex:1;">
-                    <div class="panel-header">💜 Rise.rich 借贷</div>
-                    <div class="panel-tabs">
-                        <div class="panel-tab active" onclick="switchRightTab('borrow',this)">借款</div>
-                        <div class="panel-tab" onclick="switchRightTab('repay',this)">还款</div>
-                        <div class="panel-tab" onclick="switchRightTab('lever',this)">循环杠杆</div>
-                    </div>
-                    <!-- 借款 -->
-                    <div id="tabBorrow" class="panel-content active">
-                        <div>
-                            <div class="input-label">抵押数量 (tokens)</div>
-                            <input type="number" class="amount-input" id="collateralQty" value="1000" oninput="updateBorrowCalc()">
-                        </div>
-                        <div class="calc-box">
-                            <div class="calc-row">
-                                <span class="calc-label">可借金额</span>
-                                <span class="calc-highlight" id="borrowableAmount">0.96 SOL</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">地板价</span>
-                                <span class="calc-value" id="floorPriceDisplay">1.20 SOL</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">LTV</span>
-                                <span class="calc-value">80%</span>
-                            </div>
-                            <div style="color:var(--t3);font-size:10px;margin-top:5px;">= 地板价 × 数量 × LTV</div>
-                        </div>
-                        <button class="btn-primary" onclick="showToast('✅ 借款成功，SOL 已转入钱包')">确认借款 →</button>
-                        <div class="feature-note">⚡ 无清算风险 · 一次性手续费 0.5%</div>
-                    </div>
-                    <!-- 还款 -->
-                    <div id="tabRepay" class="panel-content">
-                        <div class="outstanding-box">
-                            <div class="outstanding-label">当前借款</div>
-                            <div class="outstanding-value">0.80 SOL</div>
-                        </div>
-                        <button class="btn-repay" onclick="showToast('✅ 还款成功')">全部还款</button>
-                        <div class="feature-note">还款后抵押品自动释放</div>
-                    </div>
-                    <!-- 循环杠杆 -->
-                    <div id="tabLever" class="panel-content">
-                        <div>
-                            <div class="input-label" style="margin-bottom:8px;">循环次数</div>
-                            <div class="lever-counter">
-                                <div class="lever-btn" onclick="adjustLever(-1)">−</div>
-                                <div class="lever-value" id="leverCount">3</div>
-                                <div class="lever-btn" onclick="adjustLever(1)">+</div>
-                            </div>
-                        </div>
-                        <div class="calc-box">
-                            <div class="calc-row">
-                                <span class="calc-label">预计杠杆</span>
-                                <span class="calc-highlight" id="impliedLeverage">3.2×</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">持仓增量</span>
-                                <span class="calc-value" id="positionDelta">+2,000 tokens</span>
-                            </div>
-                        </div>
-                        <button class="btn-primary" onclick="showToast('✅ 循环杠杆执行完成')">执行循环 →</button>
-                        <div class="risk-note">⚠ 市价跌至 floor 时损失被杠杆放大，请谨慎</div>
-                    </div>
-                </div>
-
-                <!-- BSC / Likwid 交易面板 -->
-                <div id="panelBsc" style="display:none;flex-direction:column;flex:1;">
-                    <div class="panel-header">🟡 Likwid 做多/做空</div>
-                    <div style="padding:10px 14px;display:flex;flex-direction:column;gap:10px;flex:1;">
-                        <div class="direction-buttons">
-                            <div class="direction-btn long active" id="btnLong" onclick="setDirection('long')">▲ 做多</div>
-                            <div class="direction-btn short" id="btnShort" onclick="setDirection('short')">▼ 做空</div>
-                        </div>
-                        <div>
-                            <div class="input-label">投入金额 (BNB)</div>
-                            <input type="number" class="amount-input" id="tradeAmount" value="0.1" oninput="updateBscCalc()">
-                        </div>
-                        <div>
-                            <div class="input-label">杠杆倍数</div>
-                            <div class="leverage-buttons" id="leverageBtns"></div>
-                        </div>
-                        <div class="summary-box" id="bscSummary">
-                            <div class="summary-row">
-                                <span style="color:var(--t2)">预计持仓</span>
-                                <span id="estPosition">0.30 BNB</span>
-                            </div>
-                            <div class="summary-row">
-                                <span style="color:var(--t2)">入场价</span>
-                                <span id="estEntry">$0.00024</span>
-                            </div>
-                            <div class="summary-row">
-                                <span style="color:var(--t2)">最大杠杆</span>
-                                <span style="color:var(--green)" id="maxLevDisplay">5×</span>
-                            </div>
-                        </div>
-                        <button class="btn-green-full" id="actionBtn" onclick="executeTrade()">做多 PEPE 3×</button>
-                        <div style="font-size:10px;color:var(--t3);line-height:1.5;">仓位由 Likwid 协议托管 · 隔离保证金</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Toast -->
-        <div class="toast" id="toast"></div>
+<nav class="navbar">
+    <div class="navbar-logo">
+        <div class="logo-icon"></div>
+        <div class="logo-text">MemeRush</div>
     </div>
+    <button class="wallet-connect-btn" id="connectBtn">连接钱包</button>
+</nav>
 
-    <script>
-        const tokens = [
-            {id:'pepe', chain:'bsc',emoji:'🐸',name:'PEPE', liq:'$626.9K',holders:'12,450',bn:'843',   price:'$0.00024',floor:'—',  change:-4.58,disc:'—',  floorV:0,   maxLev:5},
-            {id:'doge2',chain:'bsc',emoji:'🐕',name:'DOGE2',liq:'$284.2K',holders:'8,320', bn:'291',   price:'$0.00189',floor:'—',  change:+8.21,disc:'—',  floorV:0,   maxLev:3},
-            {id:'cats', chain:'bsc',emoji:'🐱',name:'CATS', liq:'$198.5K',holders:'5,670', bn:'156',   price:'$0.00045',floor:'—',  change:+3.02,disc:'—',  floorV:0,   maxLev:4},
-            {id:'shib2',chain:'bsc',emoji:'🐶',name:'SHIB2',liq:'$156.3K',holders:'3,890', bn:'89',    price:'$0.00012',floor:'—',  change:-2.25,disc:'—',  floorV:0,   maxLev:2},
-            {id:'rush', chain:'sol',emoji:'🌊',name:'RUSH', liq:'$1.28M', holders:'28,450',bn:'1.2K',  price:'2.40 SOL',floor:'1.20 SOL',change:+12.5,disc:'-50%',floorV:1.20,maxLev:0},
-            {id:'moon', chain:'sol',emoji:'🌙',name:'MOON', liq:'$620.4K',holders:'15,230',bn:'680',   price:'0.85 SOL',floor:'0.60 SOL',change:+5.8, disc:'-29%',floorV:0.60,maxLev:0},
-            {id:'frog', chain:'sol',emoji:'🐸',name:'FROG', liq:'$980.7K',holders:'22,100',bn:'890',   price:'3.20 SOL',floor:'1.80 SOL',change:+91.2,disc:'-44%',floorV:1.80,maxLev:0},
-            {id:'degen',chain:'sol',emoji:'🎭',name:'DEGEN',liq:'$445.6K',holders:'11,780',bn:'420',   price:'1.52 SOL',floor:'0.95 SOL',change:+8.4, disc:'-37%',floorV:0.95,maxLev:0},
-        ];
+<main class="main-content">
+    <div class="columns-container">
+        <div class="column">
+            <div class="column-header">
+                <div class="column-title">🆕 New <span class="badge">14</span></div>
+                <div class="sort-indicator">按市值 ↓</div>
+            </div>
+            <div class="token-list" id="new-list"></div>
+        </div>
+        <div class="column">
+            <div class="column-header">
+                <div class="column-title">🔥 Hot <span class="badge">11</span></div>
+                <div class="sort-indicator">按 24h 涨幅 ↓</div>
+            </div>
+            <div class="token-list" id="hot-list"></div>
+        </div>
+        <div class="column">
+            <div class="column-header">
+                <div class="column-title">📈 Trending <span class="badge">9</span></div>
+                <div class="sort-indicator">按持有人 ↓</div>
+            </div>
+            <div class="token-list" id="trending-list"></div>
+        </div>
+        <div class="column column-memefi">
+            <div class="column-header">
+                <div class="column-title">💎 Meme-Fi <span class="badge badge-gold">6</span></div>
+                <div class="sort-indicator">按涨跌幅 ↓</div>
+            </div>
+            <div class="token-list" id="memefi-list"></div>
+        </div>
+    </div>
+</main>
 
-        let selected = null;
-        let currentDirection = 'long';
-        let currentLeverage = 3;
-        let currentRightTab = 'borrow';
-        const starred = new Set(['doge2','rush']);
+<div class="footer-note">
+    💎 Meme-Fi 列不受 7 天新币限制 &nbsp;·&nbsp; SOL → Rise.rich 地板价借贷/Loop &nbsp;·&nbsp; BSC → Likwid 5x 隔离保证金
+</div>
 
-        function renderTable() {
-            const tbody = document.getElementById('tokenTableBody');
-            let html = '';
-            for (const t of tokens) {
-                const isStar = starred.has(t.id);
-                const proto = t.chain === 'bsc'
-                    ? '<span class="chain-dot bsc-dot"></span> Likwid'
-                    : '<span class="chain-dot sol-dot"></span> Rise.rich';
-                const chg = t.change >= 0
-                    ? `<span class="positive-change">+${t.change.toFixed(1)}%</span>`
-                    : `<span class="negative-change">${t.change.toFixed(1)}%</span>`;
-                const disc = t.disc === '—' ? '<span style="color:var(--t3)">—</span>'
-                    : `<span class="discount-pill">${t.disc}</span>`;
-                const actions = t.chain === 'bsc'
-                    ? `<button class="btn-long" onclick="event.stopPropagation();openToken('${t.id}');setDirection('long')">▲做多</button>
-                       <button class="btn-short" onclick="event.stopPropagation();openToken('${t.id}');setDirection('short')">▼做空</button>`
-                    : `<button class="btn-borrow" onclick="event.stopPropagation();openToken('${t.id}')">借款</button>`;
-                html += `<tr onclick="openToken('${t.id}')">
-                    <td><span class="star ${isStar?'':'empty'}" onclick="toggleStar('${t.id}',event)">${isStar?'★':'☆'}</span></td>
-                    <td><div class="token-cell"><span class="token-emoji">${t.emoji}</span><span class="token-name">${t.name}</span></div></td>
-                    <td><div class="protocol-cell">${proto}</div></td>
-                    <td>${t.liq}</td>
-                    <td>${t.holders}<span style="color:var(--t3)"> / </span>${t.bn}</td>
-                    <td>${t.price}</td>
-                    <td>${t.floor === '—' ? '<span style="color:var(--t3)">—</span>' : t.floor}</td>
-                    <td>${chg}</td>
-                    <td>${disc}</td>
-                    <td class="action-cell">${actions}</td>
-                </tr>`;
-            }
-            tbody.innerHTML = html;
-        }
+<div class="detail-panel" id="detailPanel">
+    <div class="panel-header">
+        <div class="panel-title" id="panelTitle">代币详情</div>
+        <button class="close-btn" id="closeBtn">✕</button>
+    </div>
+    <div class="panel-content" id="panelContent"></div>
+</div>
 
-        function openToken(id) {
-            const t = tokens.find(x => x.id === id);
-            if (!t) return;
-            selected = t;
+<script>
+(function() {
+    const newTokens = [
+        { name: 'DOGS',  chain: 'SOL', cap: '$12.5M', h1: '+8.2%',  h24: '+45.3%', holders: '12.4k', p1: 'positive', p2: 'positive' },
+        { name: 'CATZ',  chain: 'BSC', cap: '$8.2M',  h1: '-2.1%',  h24: '+18.7%', holders: '8.7k',  p1: 'negative', p2: 'positive' },
+        { name: 'BIRDS', chain: 'SOL', cap: '$5.6M',  h1: '+15.3%', h24: '+62.1%', holders: '6.9k',  p1: 'positive', p2: 'positive' },
+        { name: 'FISH',  chain: 'BSC', cap: '$3.9M',  h1: '+3.2%',  h24: '+22.8%', holders: '4.3k',  p1: 'positive', p2: 'positive' },
+        { name: 'MOON',  chain: 'SOL', cap: '$18.2M', h1: '-5.7%',  h24: '+32.4%', holders: '15.6k', p1: 'negative', p2: 'positive' },
+    ];
+    const hotTokens = [
+        { name: 'PUMP',    chain: 'BSC', cap: '$25.3M', h1: '+12.5%', h24: '+85.2%',  holders: '21.4k', p1: 'positive', p2: 'positive' },
+        { name: 'ROCKET',  chain: 'BSC', cap: '$14.7M', h1: '+22.4%', h24: '+112.8%', holders: '13.2k', p1: 'positive', p2: 'positive' },
+        { name: 'LAMBO',   chain: 'SOL', cap: '$9.5M',  h1: '+6.8%',  h24: '+56.3%',  holders: '9.8k',  p1: 'positive', p2: 'positive' },
+        { name: 'DUMP',    chain: 'SOL', cap: '$6.8M',  h1: '-8.3%',  h24: '+42.1%',  holders: '7.9k',  p1: 'negative', p2: 'positive' },
+        { name: 'DIAMOND', chain: 'BSC', cap: '$7.2M',  h1: '-1.5%',  h24: '+28.7%',  holders: '6.5k',  p1: 'negative', p2: 'positive' },
+    ];
+    const trendingTokens = [
+        { name: 'WHALE', chain: 'BSC', cap: '$45.2M', h1: '+3.8%',  h24: '+42.6%', holders: '32.6k', p1: 'positive', p2: 'positive' },
+        { name: 'APE',   chain: 'SOL', cap: '$32.8M', h1: '+9.2%',  h24: '+68.4%', holders: '28.7k', p1: 'positive', p2: 'positive' },
+        { name: 'BULL',  chain: 'BSC', cap: '$19.6M', h1: '+18.3%', h24: '+94.2%', holders: '17.9k', p1: 'positive', p2: 'positive' },
+        { name: 'SHARK', chain: 'SOL', cap: '$12.7M', h1: '+14.9%', h24: '+78.3%', holders: '11.4k', p1: 'positive', p2: 'positive' },
+        { name: 'BEAR',  chain: 'SOL', cap: '$8.4M',  h1: '-12.5%', h24: '+15.8%', holders: '8.3k',  p1: 'negative', p2: 'positive' },
+    ];
+    const memeFiTokens = [
+        { type: 'sol', name: 'MOON RATS',  chain: 'SOL', price: '$0.0328', floor: '$0.0190', discount: '42%', lev: '5x',   chg: '+67.2%', pchg: 'positive' },
+        { type: 'bsc', name: 'BSC PUMP',   chain: 'BSC', price: '$0.0042', floor: null,      discount: null,  lev: '5x',   chg: '+51.8%', pchg: 'positive' },
+        { type: 'sol', name: 'SOLANA DOG', chain: 'SOL', price: '$0.0245', floor: '$0.0176', discount: '28%', lev: '3x',   chg: '+38.4%', pchg: 'positive' },
+        { type: 'sol', name: 'SOL CATS',   chain: 'SOL', price: '$0.0182', floor: '$0.0155', discount: '15%', lev: '2x',   chg: '+22.1%', pchg: 'positive' },
+        { type: 'bsc', name: 'BSC DUMP',   chain: 'BSC', price: '$0.0068', floor: null,      discount: null,  lev: '5x',   chg: '-18.3%', pchg: 'negative' },
+        { type: 'sol', name: 'SOL BIRDS',  chain: 'SOL', price: '$0.0097', floor: '$0.0089', discount: '8%',  lev: '1.5x', chg: '+9.7%',  pchg: 'positive' },
+    ];
 
-            document.getElementById('tokenTableContainer').style.display = 'none';
-            const dv = document.getElementById('tokenDetailView');
-            dv.style.display = 'flex';
-            document.getElementById('rightPanel').style.display = 'flex';
+    function chainClass(c) { return c === 'SOL' ? 'chain-sol' : 'chain-bsc'; }
 
-            // Header
-            document.getElementById('detailEmoji').textContent = t.emoji + ' ';
-            document.getElementById('detailName').textContent = t.name;
-            document.getElementById('detailChain').textContent = t.chain === 'bsc' ? ' · BSC / Likwid' : ' · SOL / Rise.rich';
-            document.getElementById('detailPrice').textContent = t.price;
-            const floorStat = document.getElementById('detailFloorStat');
-            if (t.chain === 'sol') {
-                floorStat.style.display = '';
-                document.getElementById('detailFloor').textContent = t.floor;
-            } else {
-                floorStat.style.display = 'none';
-            }
-            const chgEl = document.getElementById('detailChange');
-            chgEl.textContent = (t.change >= 0 ? '+' : '') + t.change.toFixed(1) + '%';
-            chgEl.style.color = t.change >= 0 ? 'var(--green)' : 'var(--red)';
-
-            // Stats card
-            const sc = document.getElementById('statsCard');
-            if (t.chain === 'sol') {
-                sc.innerHTML = `
-                    <div class="protocol-badge badge-sol">🔵 Rise.rich</div>
-                    <div class="stats-row"><span class="stats-label">地板价</span><span class="stats-value" style="color:var(--yellow)">${t.floor}</span></div>
-                    <div class="stats-row"><span class="stats-label">ATH</span><span class="stats-value">${(t.floorV * 2.33).toFixed(2)} SOL</span></div>
-                    <div class="stats-row"><span class="stats-label">折价率</span><span class="stats-value" style="color:var(--red)">${t.disc}</span></div>
-                    <div class="stats-row"><span class="stats-label">协议储备</span><span class="stats-value">${(t.floorV * 20000).toLocaleString()} SOL</span></div>
-                    <div class="stats-row"><span class="stats-label">背书资产</span><span class="stats-value">SOL</span></div>
-                    <div class="stats-row"><span class="stats-label">手续费</span><span class="stats-value">一次性 0.5%</span></div>
-                    <div class="stats-row"><span class="stats-label">无清算风险</span><span class="stats-check">✓ 是</span></div>
-                `;
-                // Right panel SOL
-                document.getElementById('panelSol').style.display = 'flex';
-                document.getElementById('panelBsc').style.display = 'none';
-                document.getElementById('floorPriceDisplay').textContent = t.floor;
-                updateBorrowCalc();
-                switchRightTab(currentRightTab);
-            } else {
-                sc.innerHTML = `
-                    <div class="protocol-badge badge-bsc">🟡 Likwid</div>
-                    <div class="stats-row"><span class="stats-label">流动性</span><span class="stats-value">${t.liq}</span></div>
-                    <div class="stats-row"><span class="stats-label">持有者</span><span class="stats-value">${t.holders}</span></div>
-                    <div class="stats-row"><span class="stats-label">币安持有</span><span class="stats-value">${t.bn}</span></div>
-                    <div class="stats-row"><span class="stats-label">最大杠杆</span><span class="stats-value" style="color:var(--green)">${t.maxLev}×</span></div>
-                    <div class="stats-row"><span class="stats-label">隔离保证金</span><span class="stats-check">✓ 是</span></div>
-                `;
-                // Right panel BSC
-                document.getElementById('panelBsc').style.display = 'flex';
-                document.getElementById('panelSol').style.display = 'none';
-                document.getElementById('maxLevDisplay').textContent = t.maxLev + '×';
-                renderLeverageButtons(t);
-                updateBscCalc();
-            }
-
-            drawChart(t);
-        }
-
-        function closeToken() {
-            document.getElementById('tokenTableContainer').style.display = 'block';
-            document.getElementById('tokenDetailView').style.display = 'none';
-            document.getElementById('rightPanel').style.display = 'none';
-            selected = null;
-        }
-
-        function drawChart(t) {
-            const svg = document.getElementById('chartSvg');
-            svg.innerHTML = '';
-            const rect = svg.getBoundingClientRect();
-            const W = rect.width || 500;
-            const H = rect.height || 260;
-            const mg = {t:20, r:55, b:28, l:12};
-            const cw = W - mg.l - mg.r;
-            const ch = H - mg.t - mg.b;
-
-            const n = 18;
-            const candleW = cw / n * 0.65;
-            const step = cw / n;
-
-            // Generate candle data
-            let base = t.floorV > 0 ? t.floorV * 2 : parseFloat(t.price.replace('$','')) || 0.001;
-            let cur = base * 0.75;
-            const candles = [];
-            for (let i = 0; i < n; i++) {
-                const o = cur;
-                const chg2 = (Math.random() - 0.45) * 0.06 * base;
-                const c = Math.max(o + chg2, base * 0.05);
-                const h = Math.max(o, c) + Math.random() * 0.015 * base;
-                const l = Math.min(o, c) - Math.random() * 0.015 * base;
-                candles.push({o, c, h, l});
-                cur = c;
-            }
-
-            const maxP = Math.max(...candles.map(c => c.h));
-            const minP = t.floorV > 0 ? Math.min(t.floorV * 0.92, Math.min(...candles.map(c => c.l))) : Math.min(...candles.map(c => c.l));
-            const range = maxP - minP || 0.001;
-            const sy = p => mg.t + ch - ((p - minP) / range * ch);
-
-            const ns = 'http://www.w3.org/2000/svg';
-
-            // Grid lines
-            for (let i = 0; i <= 4; i++) {
-                const y = mg.t + (ch / 4) * i;
-                const line = document.createElementNS(ns, 'line');
-                line.setAttribute('x1', mg.l); line.setAttribute('x2', W - mg.r);
-                line.setAttribute('y1', y); line.setAttribute('y2', y);
-                line.setAttribute('stroke', 'var(--border-sub)'); line.setAttribute('stroke-width', '0.5');
-                svg.appendChild(line);
-                // Price label
-                const pval = maxP - (range / 4) * i;
-                const txt = document.createElementNS(ns, 'text');
-                txt.setAttribute('x', W - mg.r + 4);
-                txt.setAttribute('y', y + 4);
-                txt.setAttribute('fill', 'var(--t3)');
-                txt.setAttribute('font-size', '10');
-                txt.textContent = t.floorV > 0 ? pval.toFixed(2) : pval.toFixed(6);
-                svg.appendChild(txt);
-            }
-
-            // Time labels
-            const times = ['10:00','11:00','12:00','13:00','14:00'];
-            times.forEach((ti, i) => {
-                const x = mg.l + (cw / 4) * i;
-                const txt = document.createElementNS(ns, 'text');
-                txt.setAttribute('x', x);
-                txt.setAttribute('y', H - 4);
-                txt.setAttribute('fill', 'var(--t3)');
-                txt.setAttribute('font-size', '10');
-                txt.textContent = ti;
-                svg.appendChild(txt);
-            });
-
-            // Candles
-            candles.forEach((c, i) => {
-                const x = mg.l + i * step + step * 0.175;
-                const col = c.c >= c.o ? 'var(--green)' : 'var(--red)';
-
-                // Wick
-                const wick = document.createElementNS(ns, 'line');
-                wick.setAttribute('x1', x + candleW/2); wick.setAttribute('x2', x + candleW/2);
-                wick.setAttribute('y1', sy(c.h)); wick.setAttribute('y2', sy(c.l));
-                wick.setAttribute('stroke', col); wick.setAttribute('stroke-width', '1');
-                svg.appendChild(wick);
-
-                // Body
-                const body = document.createElementNS(ns, 'rect');
-                const by = sy(Math.max(c.o, c.c));
-                const bh = Math.max(1, Math.abs(sy(c.o) - sy(c.c)));
-                body.setAttribute('x', x);
-                body.setAttribute('y', by);
-                body.setAttribute('width', candleW);
-                body.setAttribute('height', bh);
-                body.setAttribute('fill', col);
-                svg.appendChild(body);
-            });
-
-            // Floor line for SOL
-            if (t.floorV > 0) {
-                const fy = sy(t.floorV);
-                const fl = document.createElementNS(ns, 'line');
-                fl.setAttribute('x1', mg.l); fl.setAttribute('x2', W - mg.r);
-                fl.setAttribute('y1', fy); fl.setAttribute('y2', fy);
-                fl.setAttribute('stroke', 'var(--yellow)');
-                fl.setAttribute('stroke-width', '1.5');
-                fl.setAttribute('stroke-dasharray', '5,3');
-                svg.appendChild(fl);
-
-                const flTxt = document.createElementNS(ns, 'text');
-                flTxt.setAttribute('x', mg.l + 4);
-                flTxt.setAttribute('y', fy - 5);
-                flTxt.setAttribute('fill', 'var(--yellow)');
-                flTxt.setAttribute('font-size', '10');
-                flTxt.setAttribute('font-weight', '600');
-                flTxt.textContent = 'Floor ' + t.floor;
-                svg.appendChild(flTxt);
-            }
-        }
-
-        function switchRightTab(tab, el) {
-            currentRightTab = tab;
-            document.querySelectorAll('#panelSol .panel-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#panelSol .panel-content').forEach(t => t.classList.remove('active'));
-            const map = {borrow:'tabBorrow', repay:'tabRepay', lever:'tabLever'};
-            const el2 = document.getElementById(map[tab]);
-            if (el2) el2.classList.add('active');
-            if (el) el.classList.add('active');
-        }
-
-        function setDirection(dir) {
-            currentDirection = dir;
-            document.getElementById('btnLong').classList.toggle('active', dir === 'long');
-            document.getElementById('btnShort').classList.toggle('active', dir === 'short');
-            updateBscCalc();
-        }
-
-        function updateBorrowCalc() {
-            if (!selected || selected.chain !== 'sol') return;
-            const qty = parseFloat(document.getElementById('collateralQty').value) || 0;
-            const canBorrow = selected.floorV * 0.8 * qty;
-            document.getElementById('borrowableAmount').textContent = canBorrow.toFixed(3) + ' SOL';
-        }
-
-        function updateBscCalc() {
-            if (!selected || selected.chain !== 'bsc') return;
-            const amt = parseFloat(document.getElementById('tradeAmount').value) || 0;
-            document.getElementById('estPosition').textContent = (amt * currentLeverage).toFixed(3) + ' BNB';
-            document.getElementById('estEntry').textContent = selected.price;
-            const dir = currentDirection === 'long' ? '做多' : '做空';
-            document.getElementById('actionBtn').textContent = `${dir} ${selected.name} ${currentLeverage}×`;
-        }
-
-        function adjustLever(d) {
-            const el = document.getElementById('leverCount');
-            let v = parseInt(el.textContent) + d;
-            v = Math.max(1, Math.min(10, v));
-            el.textContent = v;
-            document.getElementById('impliedLeverage').textContent = (1 + v * 0.72).toFixed(1) + '×';
-            document.getElementById('positionDelta').textContent = '+' + (1000 * v).toLocaleString() + ' tokens';
-        }
-
-        function renderLeverageButtons(t) {
-            const c = document.getElementById('leverageBtns');
-            c.innerHTML = '';
-            const levels = [1, 2, 3, t.maxLev].filter((v,i,a) => a.indexOf(v) === i && v >= 1);
-            levels.forEach(lv => {
-                const b = document.createElement('div');
-                b.className = 'leverage-btn' + (lv === currentLeverage ? ' active' : '');
-                b.textContent = lv + '×';
-                b.onclick = () => {
-                    currentLeverage = lv;
-                    document.querySelectorAll('.leverage-btn').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active');
-                    updateBscCalc();
-                };
-                c.appendChild(b);
-            });
-        }
-
-        function executeTrade() {
-            const dir = currentDirection === 'long' ? '做多' : '做空';
-            showToast(`✅ 开仓成功: ${dir} ${selected?.name} ${currentLeverage}×`);
-        }
-
-        function showToast(msg) {
-            const el = document.getElementById('toast');
-            el.textContent = msg;
-            el.style.display = 'block';
-            clearTimeout(window._tt);
-            window._tt = setTimeout(() => { el.style.display = 'none'; }, 2500);
-        }
-
-        function toggleStar(id, e) {
-            e.stopPropagation();
-            starred.has(id) ? starred.delete(id) : starred.add(id);
-            renderTable();
-        }
-
-        function switchSidebarTab(el) {
-            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function switchCenterTab(el) {
-            document.querySelectorAll('.center-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function switchTimePill(el) {
-            document.querySelectorAll('.time-pill').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function toggleChainPill(el) {
-            el.classList.toggle('active');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderTable();
+    function renderExisting(listId, tokens) {
+        const el = document.getElementById(listId);
+        tokens.forEach(t => {
+            el.insertAdjacentHTML('beforeend', `
+                <div class="token-row">
+                    <div class="token-name-row">
+                        <span class="token-name">${t.name}</span>
+                        <span class="chain-badge ${chainClass(t.chain)}">${t.chain}</span>
+                    </div>
+                    <div class="token-data">
+                        <div class="data-item"><span class="label">市值</span><span class="value">${t.cap}</span></div>
+                        <div class="data-item"><span class="label">1h</span><span class="value ${t.p1}">${t.h1}</span></div>
+                        <div class="data-item"><span class="label">24h</span><span class="value ${t.p2}">${t.h24}</span></div>
+                        <div class="data-item"><span class="label">持有人</span><span class="value">${t.holders}</span></div>
+                    </div>
+                </div>`);
         });
-    </script>
+    }
+
+    function renderMemeFi() {
+        const el = document.getElementById('memefi-list');
+        memeFiTokens.forEach(t => {
+            const discountHtml = t.discount
+                ? `<div class="data-item"><span class="label">地板折扣</span><span class="value positive">${t.discount}</span></div>`
+                : `<div class="data-item"><span class="label">地板折扣</span><span class="value neutral">—</span></div>`;
+            const row = document.createElement('div');
+            row.className = 'token-row token-row-memefi';
+            row.innerHTML = `
+                <div class="token-name-row">
+                    <span class="token-name">${t.name}</span>
+                    <span class="chain-badge ${chainClass(t.chain)}">${t.chain}</span>
+                </div>
+                <div class="token-data">
+                    <div class="data-item"><span class="label">价格</span><span class="value">${t.price}</span></div>
+                    ${discountHtml}
+                    <div class="data-item"><span class="label">杠杆上限</span><span class="value">${t.lev}</span></div>
+                    <div class="data-item"><span class="label">24h</span><span class="value ${t.pchg}">${t.chg}</span></div>
+                </div>`;
+            row.addEventListener('click', () => openPanel(t));
+            el.appendChild(row);
+        });
+    }
+
+    function openPanel(t) {
+        document.getElementById('panelTitle').textContent = t.name;
+        const c = document.getElementById('panelContent');
+
+        if (t.type === 'sol') {
+            c.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">链 / 协议</div>
+                    <div class="info-value">
+                        <span class="chain-badge chain-sol">SOL</span>
+                        <span class="protocol-tag protocol-sol">Rise.rich</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">当前价格</div>
+                    <div class="info-value">${t.price}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">地板价</div>
+                    <div class="info-value">${t.floor} <span class="discount-tag">折扣 ${t.discount}</span></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Loop 杠杆上限</div>
+                    <div class="info-value">${t.lev}</div>
+                </div>
+                <div class="divider"></div>
+                <button class="action-btn btn-primary" onclick="showToast('地板价借贷 — Rise.rich')">地板价借贷 (Borrow)</button>
+                <button class="action-btn btn-secondary" onclick="showToast('Loop 杠杆循环 — Rise.rich')">杠杆循环 (Loop)</button>`;
+        } else {
+            c.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">链 / 协议</div>
+                    <div class="info-value">
+                        <span class="chain-badge chain-bsc">BSC</span>
+                        <span class="protocol-tag protocol-bsc">Likwid</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">当前价格</div>
+                    <div class="info-value">${t.price}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">隔离保证金 / 最高杠杆</div>
+                    <div class="info-value">${t.lev}</div>
+                </div>
+                <div class="divider"></div>
+                <div class="info-label" style="margin-bottom:8px;">选择杠杆倍数</div>
+                <div class="leverage-row" id="levRow">
+                    <button class="lev-btn active">1x</button>
+                    <button class="lev-btn">2x</button>
+                    <button class="lev-btn">3x</button>
+                    <button class="lev-btn">5x</button>
+                </div>
+                <div class="two-col" style="margin-top:12px;">
+                    <button class="action-btn btn-long" onclick="showToast('做多开仓 — Likwid 隔离保证金')">做多 Long</button>
+                    <button class="action-btn btn-short" onclick="showToast('做空开仓 — Likwid 隔离保证金')">做空 Short</button>
+                </div>`;
+            document.querySelectorAll('#levRow .lev-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#levRow .lev-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+        document.getElementById('detailPanel').classList.add('active');
+    }
+
+    window.showToast = function(msg) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.style.cssText = 'position:fixed;bottom:56px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#93c5fd;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid #3b82f6;z-index:9999;pointer-events:none;transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderExisting('new-list', newTokens);
+        renderExisting('hot-list', hotTokens);
+        renderExisting('trending-list', trendingTokens);
+        renderMemeFi();
+
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            document.getElementById('detailPanel').classList.remove('active');
+        });
+
+        document.getElementById('connectBtn').addEventListener('click', function() {
+            this.textContent = '0x8f7…c3b2 ✓';
+            this.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+        });
+    });
+})();
+</script>
 </body>
 </html>
