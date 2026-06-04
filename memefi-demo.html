@@ -1,445 +1,544 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemeRush | Meme-Fi Demo</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+<meta charset="UTF-8">
+<title>MemeRush | Meme-Fi Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:#0a0f1e;color:#e2e8f0;height:700px;overflow:hidden}
 
-        body {
-            background-color: #0a0f1e;
-            color: #e2e8f0;
-            height: 700px;
-            min-width: 1200px;
-            overflow: hidden;
-        }
+/* ── Nav ── */
+.nav{background:#0d1423;border-bottom:1px solid #1e293b;height:50px;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.nav-left{display:flex;align-items:center;gap:10px}
+.logo-dot{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#8b5cf6,#3b82f6)}
+.logo-text{font-size:17px;font-weight:700;background:linear-gradient(to right,#fbbf24,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-right{display:flex;align-items:center;gap:10px}
+.btn-settings{background:rgba(255,255,255,0.07);border:1px solid #334155;color:#94a3b8;
+  border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all 0.15s}
+.btn-settings:hover{background:rgba(255,255,255,0.12);color:#e2e8f0}
+.btn-wallet{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;color:#fff;
+  border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity 0.15s}
+.btn-wallet:hover{opacity:0.88}
 
-        /* 导航栏 */
-        .navbar {
-            background-color: #0d1423;
-            border-bottom: 1px solid #1e293b;
-            padding: 0 24px;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .navbar-logo { display: flex; align-items: center; gap: 10px; }
-        .logo-icon {
-            width: 28px; height: 28px;
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            border-radius: 6px;
-        }
-        .logo-text {
-            font-size: 18px; font-weight: 700;
-            background: linear-gradient(to right, #fbbf24, #a78bfa);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .wallet-connect-btn {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white; border: none; border-radius: 6px;
-            padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .wallet-connect-btn:hover { opacity: 0.9; }
+/* ── Main scroll area ── */
+.main{padding:14px 18px 0;height:calc(100% - 86px);overflow-x:auto;overflow-y:hidden}
+.cols{display:flex;gap:13px;height:100%;width:max-content}
 
-        /* 主内容 */
-        .main-content {
-            padding: 16px 20px 0;
-            height: calc(100% - 88px);
-            overflow-x: auto;
-            overflow-y: hidden;
-        }
+/* ── Column ── */
+.col{width:285px;background:#0d1423;border-radius:10px;border:1px solid #1e293b;
+  display:flex;flex-direction:column;height:100%;overflow:hidden;flex-shrink:0}
+.col-memefi{width:305px;border:2px solid #fbbf24;border-left-width:3px;
+  box-shadow:0 0 22px rgba(251,191,36,.10)}
+.col-header{padding:11px 13px;border-bottom:1px solid #1e293b;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.col-title{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;
+  background:#1e3a5f;color:#60a5fa}
+.badge-gold{background:rgba(251,191,36,.15);color:#fbbf24}
+.col-sort{font-size:11px;color:#475569}
+.token-list{flex:1;overflow-y:auto}
 
-        .columns-container {
-            display: flex;
-            gap: 14px;
-            height: 100%;
-            min-width: min-content;
-        }
+/* ── Token row ── */
+.tr{padding:11px 13px;border-bottom:1px solid rgba(30,41,59,.5);transition:background .1s}
+.tr:hover{background:rgba(255,255,255,.03)}
+.tr-fi{cursor:pointer}
+.tr-fi:hover{background:rgba(251,191,36,.04)}
+.tr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.tn{font-weight:600;font-size:12.5px}
+.tr-badges{display:flex;gap:4px;align-items:center}
 
-        /* 通用列 */
-        .column {
-            flex: 0 0 290px;
-            background-color: #0d1423;
-            border-radius: 10px;
-            border: 1px solid #1e293b;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-        }
+.cb{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;
+  text-transform:uppercase;letter-spacing:.4px}
+.cb-sol{background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.3)}
+.cb-bsc{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.pb{font-size:9px;padding:1px 5px;border-radius:3px}
+.pb-sol{background:rgba(139,92,246,.12);color:#c4b5fd}
+.pb-usdc{background:rgba(22,163,74,.12);color:#4ade80}
 
-        /* Meme-Fi 列高亮 */
-        .column-memefi {
-            flex: 0 0 310px;
-            border: 2px solid #fbbf24;
-            border-left-width: 3px;
-            box-shadow: 0 0 24px rgba(251,191,36,0.12), inset 0 0 0 1px rgba(251,191,36,0.05);
-        }
+.td{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.di{display:flex;justify-content:space-between;align-items:center}
+.lbl{color:#475569;font-size:10.5px}
+.val{font-size:11.5px;font-weight:500}
+.pos{color:#10b981}.neg{color:#ef4444}.neu{color:#64748b}
+.key-val{color:#fbbf24;font-weight:600}  /* Discount to Floor highlight */
 
-        /* 列头 */
-        .column-header {
-            padding: 12px 14px;
-            border-bottom: 1px solid #1e293b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: rgba(13,20,35,0.95);
-            flex-shrink: 0;
-        }
-        .column-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-        .badge {
-            background-color: #1e3a5f; color: #60a5fa;
-            font-size: 11px; padding: 2px 7px; border-radius: 8px; font-weight: 600;
-        }
-        .badge-gold { background-color: rgba(251,191,36,0.15); color: #fbbf24; }
-        .sort-indicator { font-size: 11px; color: #64748b; }
+/* ── Footer ── */
+.footer{height:36px;border-top:1px solid #1e293b;display:flex;align-items:center;
+  justify-content:center;color:#334155;font-size:11px;padding:0 20px;flex-shrink:0}
 
-        /* 代币列表 */
-        .token-list { flex: 1; overflow-y: auto; padding: 2px 0; }
+/* ── Detail panel ── */
+.panel{position:fixed;top:0;right:0;width:295px;height:100%;background:#0d1423;
+  border-left:1px solid rgba(251,191,36,.25);z-index:100;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column}
+.panel.open{transform:translateX(0)}
+.ph{padding:15px 16px;border-bottom:1px solid #1e293b;
+  display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(135deg,rgba(251,191,36,.05),transparent)}
+.ph-title{font-size:14px;font-weight:600}
+.btn-x{background:none;border:none;color:#475569;font-size:17px;cursor:pointer;
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;transition:all .1s}
+.btn-x:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
+.pc{flex:1;padding:16px;overflow-y:auto}
 
-        /* 代币行 */
-        .token-row {
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(30,41,59,0.6);
-            transition: background-color 0.12s;
-        }
-        .token-row:hover { background-color: rgba(255,255,255,0.03); }
-        .token-row-memefi { cursor: pointer; }
-        .token-row-memefi:hover { background-color: rgba(139,92,246,0.06); }
+.pi{margin-bottom:14px}
+.pi-l{color:#64748b;font-size:11px;margin-bottom:3px}
+.pi-v{font-size:15px;font-weight:600;display:flex;align-items:center;gap:7px}
 
-        .token-name-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px;
-        }
-        .token-name { font-weight: 600; font-size: 13px; }
+.dtag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px}
+.dtag-dis{background:rgba(251,191,36,.15);color:#fbbf24}
+.dtag-prot-sol{background:rgba(139,92,246,.15);color:#a78bfa}
+.dtag-prot-bsc{background:rgba(245,158,11,.15);color:#fbbf24}
 
-        .chain-badge {
-            font-size: 10px; font-weight: 700; padding: 2px 6px;
-            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .chain-sol { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.35); }
-        .chain-bsc { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+.div{height:1px;background:#1e293b;margin:14px 0}
 
-        .token-data { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .data-item { display: flex; justify-content: space-between; align-items: center; }
-        .label { color: #64748b; font-size: 11px; }
-        .value { font-size: 12px; font-weight: 500; }
-        .positive { color: #10b981; }
-        .negative { color: #ef4444; }
-        .neutral { color: #94a3b8; }
+.abtn{width:100%;padding:10px;border-radius:6px;font-weight:600;font-size:12.5px;
+  border:none;cursor:pointer;margin-bottom:7px;transition:opacity .15s}
+.abtn:hover{opacity:.85}
+.abtn-p{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff}
+.abtn-s{background:rgba(255,255,255,.07);color:#cbd5e1;border:1px solid #334155}
+.abtn-long{background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+.abtn-short{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
 
-        /* 底部注释 */
-        .footer-note {
-            padding: 10px 20px;
-            text-align: center; color: #475569; font-size: 11px;
-            border-top: 1px solid #1e293b; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-        }
+.lev-row{display:flex;gap:5px;margin:10px 0}
+.lbtn{flex:1;padding:6px 0;background:rgba(255,255,255,.05);border:1px solid #334155;
+  border-radius:4px;color:#64748b;font-size:11.5px;font-weight:600;cursor:pointer;
+  text-align:center;transition:all .12s}
+.lbtn.on{background:rgba(59,130,246,.2);border-color:#3b82f6;color:#60a5fa}
+.lbtn:hover:not(.on){background:rgba(255,255,255,.08)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
 
-        /* 右侧详情面板 */
-        .detail-panel {
-            position: fixed; top: 0; right: 0;
-            width: 300px; height: 100%;
-            background-color: #0d1423;
-            border-left: 1px solid rgba(251,191,36,0.3);
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-            display: flex; flex-direction: column;
-        }
-        .detail-panel.active { transform: translateX(0); }
+/* ── Settings panel ── */
+.settings{position:fixed;top:0;right:0;width:280px;height:100%;background:#0d1423;
+  border-left:1px solid #334155;z-index:200;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column}
+.settings.open{transform:translateX(0)}
+.sh{padding:15px 16px;border-bottom:1px solid #1e293b;
+  display:flex;justify-content:space-between;align-items:center}
+.sh-title{font-size:14px;font-weight:600}
+.sc{flex:1;padding:16px;overflow-y:auto}
+.sc p{color:#64748b;font-size:11px;margin-bottom:14px}
 
-        .panel-header {
-            padding: 16px 18px;
-            border-bottom: 1px solid #1e293b;
-            display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(135deg, rgba(251,191,36,0.05), transparent);
-        }
-        .panel-title { font-size: 15px; font-weight: 600; }
-        .close-btn {
-            background: none; border: none; color: #64748b;
-            font-size: 18px; cursor: pointer; width: 28px; height: 28px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 4px;
-        }
-        .close-btn:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+.sr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:7px;
+  background:rgba(255,255,255,.04);border:1px solid #1e293b;margin-bottom:8px;
+  user-select:none}
+.sr-handle{color:#334155;font-size:15px;cursor:grab;line-height:1;flex-shrink:0}
+.sr-handle:active{cursor:grabbing}
+.sr-name{flex:1;font-size:13px;font-weight:500}
+.sr-arrows{display:flex;flex-direction:column;gap:2px}
+.arr{background:rgba(255,255,255,.06);border:1px solid #334155;color:#94a3b8;
+  border-radius:3px;width:20px;height:18px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-size:10px;transition:all .1s}
+.arr:hover{background:rgba(255,255,255,.12);color:#e2e8f0}
 
-        .panel-content { flex: 1; padding: 18px; overflow-y: auto; }
+/* toggle switch */
+.tog{position:relative;width:36px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#1e293b;border-radius:10px;
+  cursor:pointer;transition:.2s}
+.tog-sl::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;
+  background:#64748b;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:#3b82f6}
+.tog input:checked+.tog-sl::before{transform:translateX(16px);background:#fff}
 
-        .info-item { margin-bottom: 16px; }
-        .info-label { color: #64748b; font-size: 12px; margin-bottom: 4px; }
-        .info-value { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.btn-apply{width:100%;padding:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+  border:none;color:#fff;border-radius:6px;font-weight:600;font-size:13px;
+  cursor:pointer;margin-top:8px;transition:opacity .15s}
+.btn-apply:hover{opacity:.88}
 
-        .discount-tag {
-            font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
-            background: rgba(16,185,129,0.15); color: #10b981;
-        }
-        .protocol-tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; }
-        .protocol-sol { background: rgba(139,92,246,0.15); color: #a78bfa; }
-        .protocol-bsc { background: rgba(251,191,36,0.15); color: #fbbf24; }
+/* ── Toast ── */
+#toast{position:fixed;bottom:46px;left:50%;transform:translateX(-50%);
+  background:#1e3a5f;color:#93c5fd;padding:7px 16px;border-radius:6px;
+  font-size:12px;font-weight:600;border:1px solid #3b82f6;z-index:9999;
+  opacity:0;transition:opacity .25s;pointer-events:none}
 
-        .divider { height: 1px; background: #1e293b; margin: 16px 0; }
-
-        .action-btn {
-            width: 100%; padding: 11px; border-radius: 7px;
-            font-weight: 600; font-size: 13px; border: none; cursor: pointer;
-            transition: opacity 0.15s; margin-bottom: 8px; text-align: center;
-        }
-        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; }
-        .btn-secondary { background: rgba(255,255,255,0.07); color: #cbd5e1; border: 1px solid #334155; }
-        .btn-long { background: linear-gradient(135deg, #059669, #10b981); color: white; }
-        .btn-short { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; }
-        .action-btn:hover { opacity: 0.88; }
-
-        .leverage-row { display: flex; gap: 6px; margin: 12px 0; }
-        .lev-btn {
-            flex: 1; padding: 7px 0; background: rgba(255,255,255,0.05);
-            border: 1px solid #334155; border-radius: 5px; color: #94a3b8;
-            font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
-            transition: all 0.12s;
-        }
-        .lev-btn.active { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #60a5fa; }
-        .lev-btn:hover:not(.active) { background: rgba(255,255,255,0.08); }
-
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-    </style>
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:#334155}
+</style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="navbar-logo">
-        <div class="logo-icon"></div>
-        <div class="logo-text">MemeRush</div>
-    </div>
-    <button class="wallet-connect-btn" id="connectBtn">连接钱包</button>
+<div style="display:flex;flex-direction:column;height:700px">
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="logo-dot"></div>
+    <div class="logo-text">MemeRush</div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-settings" id="btnSettings">⚙ 列设置</button>
+    <button class="btn-wallet" id="btnWallet">连接钱包</button>
+  </div>
 </nav>
 
-<main class="main-content">
-    <div class="columns-container">
-        <div class="column">
-            <div class="column-header">
-                <div class="column-title">🆕 New <span class="badge">14</span></div>
-                <div class="sort-indicator">按市值 ↓</div>
-            </div>
-            <div class="token-list" id="new-list"></div>
-        </div>
-        <div class="column">
-            <div class="column-header">
-                <div class="column-title">🔥 Hot <span class="badge">11</span></div>
-                <div class="sort-indicator">按 24h 涨幅 ↓</div>
-            </div>
-            <div class="token-list" id="hot-list"></div>
-        </div>
-        <div class="column">
-            <div class="column-header">
-                <div class="column-title">📈 Trending <span class="badge">9</span></div>
-                <div class="sort-indicator">按持有人 ↓</div>
-            </div>
-            <div class="token-list" id="trending-list"></div>
-        </div>
-        <div class="column column-memefi">
-            <div class="column-header">
-                <div class="column-title">💎 Meme-Fi <span class="badge badge-gold">6</span></div>
-                <div class="sort-indicator">按涨跌幅 ↓</div>
-            </div>
-            <div class="token-list" id="memefi-list"></div>
-        </div>
-    </div>
-</main>
-
-<div class="footer-note">
-    💎 Meme-Fi 列不受 7 天新币限制 &nbsp;·&nbsp; SOL → Rise.rich 地板价借贷/Loop &nbsp;·&nbsp; BSC → Likwid 5x 隔离保证金
+<!-- Column area -->
+<div class="main">
+  <div class="cols" id="cols"></div>
 </div>
 
-<div class="detail-panel" id="detailPanel">
-    <div class="panel-header">
-        <div class="panel-title" id="panelTitle">代币详情</div>
-        <button class="close-btn" id="closeBtn">✕</button>
-    </div>
-    <div class="panel-content" id="panelContent"></div>
+<!-- Footer -->
+<div class="footer">
+  💎 Meme-Fi 列不受 7 天新币限制 &nbsp;·&nbsp;
+  SOL → Rise.rich 地板价借贷/Loop &nbsp;·&nbsp;
+  BSC → Likwid 5x 隔离保证金
 </div>
+
+</div><!-- /flex wrapper -->
+
+<!-- Detail panel -->
+<div class="panel" id="detailPanel">
+  <div class="ph">
+    <div class="ph-title" id="panelTitle">代币详情</div>
+    <button class="btn-x" id="btnCloseDetail">✕</button>
+  </div>
+  <div class="pc" id="panelContent"></div>
+</div>
+
+<!-- Settings panel -->
+<div class="settings" id="settingsPanel">
+  <div class="sh">
+    <div class="sh-title">列设置</div>
+    <button class="btn-x" id="btnCloseSettings">✕</button>
+  </div>
+  <div class="sc">
+    <p>拖动调整顺序，切换显示/隐藏</p>
+    <div id="settingsList"></div>
+    <button class="btn-apply" id="btnApply">应用</button>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
-(function() {
-    const newTokens = [
-        { name: 'DOGS',  chain: 'SOL', cap: '$12.5M', h1: '+8.2%',  h24: '+45.3%', holders: '12.4k', p1: 'positive', p2: 'positive' },
-        { name: 'CATZ',  chain: 'BSC', cap: '$8.2M',  h1: '-2.1%',  h24: '+18.7%', holders: '8.7k',  p1: 'negative', p2: 'positive' },
-        { name: 'BIRDS', chain: 'SOL', cap: '$5.6M',  h1: '+15.3%', h24: '+62.1%', holders: '6.9k',  p1: 'positive', p2: 'positive' },
-        { name: 'FISH',  chain: 'BSC', cap: '$3.9M',  h1: '+3.2%',  h24: '+22.8%', holders: '4.3k',  p1: 'positive', p2: 'positive' },
-        { name: 'MOON',  chain: 'SOL', cap: '$18.2M', h1: '-5.7%',  h24: '+32.4%', holders: '15.6k', p1: 'negative', p2: 'positive' },
-    ];
-    const hotTokens = [
-        { name: 'PUMP',    chain: 'BSC', cap: '$25.3M', h1: '+12.5%', h24: '+85.2%',  holders: '21.4k', p1: 'positive', p2: 'positive' },
-        { name: 'ROCKET',  chain: 'BSC', cap: '$14.7M', h1: '+22.4%', h24: '+112.8%', holders: '13.2k', p1: 'positive', p2: 'positive' },
-        { name: 'LAMBO',   chain: 'SOL', cap: '$9.5M',  h1: '+6.8%',  h24: '+56.3%',  holders: '9.8k',  p1: 'positive', p2: 'positive' },
-        { name: 'DUMP',    chain: 'SOL', cap: '$6.8M',  h1: '-8.3%',  h24: '+42.1%',  holders: '7.9k',  p1: 'negative', p2: 'positive' },
-        { name: 'DIAMOND', chain: 'BSC', cap: '$7.2M',  h1: '-1.5%',  h24: '+28.7%',  holders: '6.5k',  p1: 'negative', p2: 'positive' },
-    ];
-    const trendingTokens = [
-        { name: 'WHALE', chain: 'BSC', cap: '$45.2M', h1: '+3.8%',  h24: '+42.6%', holders: '32.6k', p1: 'positive', p2: 'positive' },
-        { name: 'APE',   chain: 'SOL', cap: '$32.8M', h1: '+9.2%',  h24: '+68.4%', holders: '28.7k', p1: 'positive', p2: 'positive' },
-        { name: 'BULL',  chain: 'BSC', cap: '$19.6M', h1: '+18.3%', h24: '+94.2%', holders: '17.9k', p1: 'positive', p2: 'positive' },
-        { name: 'SHARK', chain: 'SOL', cap: '$12.7M', h1: '+14.9%', h24: '+78.3%', holders: '11.4k', p1: 'positive', p2: 'positive' },
-        { name: 'BEAR',  chain: 'SOL', cap: '$8.4M',  h1: '-12.5%', h24: '+15.8%', holders: '8.3k',  p1: 'negative', p2: 'positive' },
-    ];
-    const memeFiTokens = [
-        { type: 'sol', name: 'MOON RATS',  chain: 'SOL', price: '$0.0328', floor: '$0.0190', discount: '42%', lev: '5x',   chg: '+67.2%', pchg: 'positive' },
-        { type: 'bsc', name: 'BSC PUMP',   chain: 'BSC', price: '$0.0042', floor: null,      discount: null,  lev: '5x',   chg: '+51.8%', pchg: 'positive' },
-        { type: 'sol', name: 'SOLANA DOG', chain: 'SOL', price: '$0.0245', floor: '$0.0176', discount: '28%', lev: '3x',   chg: '+38.4%', pchg: 'positive' },
-        { type: 'sol', name: 'SOL CATS',   chain: 'SOL', price: '$0.0182', floor: '$0.0155', discount: '15%', lev: '2x',   chg: '+22.1%', pchg: 'positive' },
-        { type: 'bsc', name: 'BSC DUMP',   chain: 'BSC', price: '$0.0068', floor: null,      discount: null,  lev: '5x',   chg: '-18.3%', pchg: 'negative' },
-        { type: 'sol', name: 'SOL BIRDS',  chain: 'SOL', price: '$0.0097', floor: '$0.0089', discount: '8%',  lev: '1.5x', chg: '+9.7%',  pchg: 'positive' },
-    ];
+(function(){
 
-    function chainClass(c) { return c === 'SOL' ? 'chain-sol' : 'chain-bsc'; }
+/* ─── Data ─────────────────────────────────────────────────── */
 
-    function renderExisting(listId, tokens) {
-        const el = document.getElementById(listId);
-        tokens.forEach(t => {
-            el.insertAdjacentHTML('beforeend', `
-                <div class="token-row">
-                    <div class="token-name-row">
-                        <span class="token-name">${t.name}</span>
-                        <span class="chain-badge ${chainClass(t.chain)}">${t.chain}</span>
-                    </div>
-                    <div class="token-data">
-                        <div class="data-item"><span class="label">市值</span><span class="value">${t.cap}</span></div>
-                        <div class="data-item"><span class="label">1h</span><span class="value ${t.p1}">${t.h1}</span></div>
-                        <div class="data-item"><span class="label">24h</span><span class="value ${t.p2}">${t.h24}</span></div>
-                        <div class="data-item"><span class="label">持有人</span><span class="value">${t.holders}</span></div>
-                    </div>
-                </div>`);
-        });
-    }
+const memefi = [
+  { type:'sol', name:'MOON RATS',  chain:'SOL', backing:'SOL',  price:'$0.0328', floor:'$0.0250', discount:'31.2%', ath:'$0.0412', lev:'5x',   chg24:'+67.2%', p:'pos' },
+  { type:'bsc', name:'BSC PUMP',   chain:'BSC', backing:null,   price:'$0.0042', floor:null,      discount:null,    ath:null,      lev:'5x',   chg24:'+51.8%', p:'pos' },
+  { type:'sol', name:'SOLANA DOG', chain:'SOL', backing:'SOL',  price:'$0.0245', floor:'$0.0210', discount:'16.7%', ath:'$0.0381', lev:'3x',   chg24:'+38.4%', p:'pos' },
+  { type:'sol', name:'SOL CATS',   chain:'SOL', backing:'USDC', price:'$0.0182', floor:'$0.0168', discount:' 8.3%', ath:'$0.0220', lev:'2x',   chg24:'+22.1%', p:'pos' },
+  { type:'bsc', name:'BSC DUMP',   chain:'BSC', backing:null,   price:'$0.0068', floor:null,      discount:null,    ath:null,      lev:'5x',   chg24:'-18.3%', p:'neg' },
+  { type:'sol', name:'SOL BIRDS',  chain:'SOL', backing:'SOL',  price:'$0.0097', floor:'$0.0091', discount:' 6.6%', ath:'$0.0143', lev:'1.5x', chg24:'+9.7%',  p:'pos' },
+];
 
-    function renderMemeFi() {
-        const el = document.getElementById('memefi-list');
-        memeFiTokens.forEach(t => {
-            const discountHtml = t.discount
-                ? `<div class="data-item"><span class="label">地板折扣</span><span class="value positive">${t.discount}</span></div>`
-                : `<div class="data-item"><span class="label">地板折扣</span><span class="value neutral">—</span></div>`;
-            const row = document.createElement('div');
-            row.className = 'token-row token-row-memefi';
-            row.innerHTML = `
-                <div class="token-name-row">
-                    <span class="token-name">${t.name}</span>
-                    <span class="chain-badge ${chainClass(t.chain)}">${t.chain}</span>
-                </div>
-                <div class="token-data">
-                    <div class="data-item"><span class="label">价格</span><span class="value">${t.price}</span></div>
-                    ${discountHtml}
-                    <div class="data-item"><span class="label">杠杆上限</span><span class="value">${t.lev}</span></div>
-                    <div class="data-item"><span class="label">24h</span><span class="value ${t.pchg}">${t.chg}</span></div>
-                </div>`;
-            row.addEventListener('click', () => openPanel(t));
-            el.appendChild(row);
-        });
-    }
+const newTokens = [
+  { name:'DOGS',  chain:'SOL', cap:'$12.5M', h1:'+8.2%',  h24:'+45.3%', holders:'12.4k', p1:'pos', p2:'pos' },
+  { name:'CATZ',  chain:'BSC', cap:'$8.2M',  h1:'-2.1%',  h24:'+18.7%', holders:'8.7k',  p1:'neg', p2:'pos' },
+  { name:'BIRDS', chain:'SOL', cap:'$5.6M',  h1:'+15.3%', h24:'+62.1%', holders:'6.9k',  p1:'pos', p2:'pos' },
+  { name:'FISH',  chain:'BSC', cap:'$3.9M',  h1:'+3.2%',  h24:'+22.8%', holders:'4.3k',  p1:'pos', p2:'pos' },
+  { name:'MOON',  chain:'SOL', cap:'$18.2M', h1:'-5.7%',  h24:'+32.4%', holders:'15.6k', p1:'neg', p2:'pos' },
+];
 
-    function openPanel(t) {
-        document.getElementById('panelTitle').textContent = t.name;
-        const c = document.getElementById('panelContent');
+const finalizingTokens = [
+  { name:'ROCKET', chain:'BSC', cap:'$42.1M', h1:'+22.4%', h24:'+112%',  holders:'38.2k', p1:'pos', p2:'pos' },
+  { name:'APE2',   chain:'SOL', cap:'$38.7M', h1:'+11.9%', h24:'+88.4%', holders:'29.7k', p1:'pos', p2:'pos' },
+  { name:'BULL3',  chain:'BSC', cap:'$29.5M', h1:'+7.3%',  h24:'+56.2%', holders:'22.4k', p1:'pos', p2:'pos' },
+  { name:'TIGER',  chain:'SOL', cap:'$24.8M', h1:'-3.1%',  h24:'+34.9%', holders:'18.6k', p1:'neg', p2:'pos' },
+  { name:'SNAKE',  chain:'BSC', cap:'$19.3M', h1:'+5.8%',  h24:'+28.1%', holders:'14.9k', p1:'pos', p2:'pos' },
+];
 
-        if (t.type === 'sol') {
-            c.innerHTML = `
-                <div class="info-item">
-                    <div class="info-label">链 / 协议</div>
-                    <div class="info-value">
-                        <span class="chain-badge chain-sol">SOL</span>
-                        <span class="protocol-tag protocol-sol">Rise.rich</span>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">当前价格</div>
-                    <div class="info-value">${t.price}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">地板价</div>
-                    <div class="info-value">${t.floor} <span class="discount-tag">折扣 ${t.discount}</span></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Loop 杠杆上限</div>
-                    <div class="info-value">${t.lev}</div>
-                </div>
-                <div class="divider"></div>
-                <button class="action-btn btn-primary" onclick="showToast('地板价借贷 — Rise.rich')">地板价借贷 (Borrow)</button>
-                <button class="action-btn btn-secondary" onclick="showToast('Loop 杠杆循环 — Rise.rich')">杠杆循环 (Loop)</button>`;
-        } else {
-            c.innerHTML = `
-                <div class="info-item">
-                    <div class="info-label">链 / 协议</div>
-                    <div class="info-value">
-                        <span class="chain-badge chain-bsc">BSC</span>
-                        <span class="protocol-tag protocol-bsc">Likwid</span>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">当前价格</div>
-                    <div class="info-value">${t.price}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">隔离保证金 / 最高杠杆</div>
-                    <div class="info-value">${t.lev}</div>
-                </div>
-                <div class="divider"></div>
-                <div class="info-label" style="margin-bottom:8px;">选择杠杆倍数</div>
-                <div class="leverage-row" id="levRow">
-                    <button class="lev-btn active">1x</button>
-                    <button class="lev-btn">2x</button>
-                    <button class="lev-btn">3x</button>
-                    <button class="lev-btn">5x</button>
-                </div>
-                <div class="two-col" style="margin-top:12px;">
-                    <button class="action-btn btn-long" onclick="showToast('做多开仓 — Likwid 隔离保证金')">做多 Long</button>
-                    <button class="action-btn btn-short" onclick="showToast('做空开仓 — Likwid 隔离保证金')">做空 Short</button>
-                </div>`;
-            document.querySelectorAll('#levRow .lev-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('#levRow .lev-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
-        document.getElementById('detailPanel').classList.add('active');
-    }
+const migratedTokens = [
+  { name:'WHALE2', chain:'BSC', cap:'$89.4M', h1:'+3.8%',  h24:'+42.6%', holders:'64.2k', p1:'pos', p2:'pos' },
+  { name:'APE',    chain:'SOL', cap:'$67.3M', h1:'+9.2%',  h24:'+68.4%', holders:'52.8k', p1:'pos', p2:'pos' },
+  { name:'DOGE2',  chain:'BSC', cap:'$54.1M', h1:'+2.1%',  h24:'+31.7%', holders:'41.3k', p1:'pos', p2:'pos' },
+  { name:'PEPE2',  chain:'SOL', cap:'$48.6M', h1:'-1.5%',  h24:'+22.3%', holders:'36.7k', p1:'neg', p2:'pos' },
+  { name:'SHIB2',  chain:'BSC', cap:'$38.2M', h1:'+6.4%',  h24:'+47.8%', holders:'29.4k', p1:'pos', p2:'pos' },
+];
 
-    window.showToast = function(msg) {
-        let toast = document.getElementById('toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'toast';
-            toast.style.cssText = 'position:fixed;bottom:56px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#93c5fd;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid #3b82f6;z-index:9999;pointer-events:none;transition:opacity 0.3s;';
-            document.body.appendChild(toast);
-        }
-        toast.textContent = msg;
-        toast.style.opacity = '1';
-        clearTimeout(toast._t);
-        toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-    };
+/* ─── Column config (order = display order) ────────────────── */
+let colConfig = [
+  { id:'memefi',     label:'💎 Meme-Fi',    visible:true },
+  { id:'new',        label:'🆕 New',         visible:true },
+  { id:'finalizing', label:'⏳ Finalizing',  visible:true },
+  { id:'migrated',   label:'✅ Migrated',    visible:true },
+];
 
-    document.addEventListener('DOMContentLoaded', () => {
-        renderExisting('new-list', newTokens);
-        renderExisting('hot-list', hotTokens);
-        renderExisting('trending-list', trendingTokens);
-        renderMemeFi();
+/* ─── Column builders ───────────────────────────────────────── */
 
-        document.getElementById('closeBtn').addEventListener('click', () => {
-            document.getElementById('detailPanel').classList.remove('active');
-        });
+function ccls(c){ return c==='SOL' ? 'cb-sol' : 'cb-bsc'; }
+function pcls(p){ return p==='pos'?'pos':p==='neg'?'neg':'neu'; }
 
-        document.getElementById('connectBtn').addEventListener('click', function() {
-            this.textContent = '0x8f7…c3b2 ✓';
-            this.style.background = 'linear-gradient(135deg,#059669,#10b981)';
-        });
+function buildMemeFiRow(t){
+  const row = document.createElement('div');
+  row.className = 'tr tr-fi';
+
+  const backBadge = t.backing
+    ? `<span class="pb ${t.backing==='SOL'?'pb-sol':'pb-usdc'}">${t.backing}</span>` : '';
+
+  let fields;
+  if(t.type==='sol'){
+    fields = `
+      <div class="di"><span class="lbl">Price</span><span class="val">${t.price}</span></div>
+      <div class="di"><span class="lbl">Floor Price</span><span class="val">${t.floor}</span></div>
+      <div class="di"><span class="lbl">Discount to Floor</span><span class="val key-val">${t.discount}</span></div>
+      <div class="di"><span class="lbl">ATH</span><span class="val neu">${t.ath}</span></div>`;
+  } else {
+    fields = `
+      <div class="di"><span class="lbl">Price</span><span class="val">${t.price}</span></div>
+      <div class="di"><span class="lbl">Max Leverage</span><span class="val">${t.lev}</span></div>
+      <div class="di"><span class="lbl">24h</span><span class="val ${pcls(t.p)}">${t.chg24}</span></div>
+      <div class="di"><span class="lbl">Protocol</span><span class="val neu">Likwid</span></div>`;
+  }
+
+  row.innerHTML = `
+    <div class="tr-top">
+      <span class="tn">${t.name}</span>
+      <div class="tr-badges">
+        <span class="cb ${ccls(t.chain)}">${t.chain}</span>
+        ${backBadge}
+      </div>
+    </div>
+    <div class="td">${fields}</div>`;
+  row.addEventListener('click', ()=>openDetail(t));
+  return row;
+}
+
+function buildStdRow(t){
+  const row = document.createElement('div');
+  row.className = 'tr';
+  row.innerHTML = `
+    <div class="tr-top">
+      <span class="tn">${t.name}</span>
+      <span class="cb ${ccls(t.chain)}">${t.chain}</span>
+    </div>
+    <div class="td">
+      <div class="di"><span class="lbl">市值</span><span class="val">${t.cap}</span></div>
+      <div class="di"><span class="lbl">1h</span><span class="val ${pcls(t.p1)}">${t.h1}</span></div>
+      <div class="di"><span class="lbl">24h</span><span class="val ${pcls(t.p2)}">${t.h24}</span></div>
+      <div class="di"><span class="lbl">持有人</span><span class="val">${t.holders}</span></div>
+    </div>`;
+  return row;
+}
+
+function buildColumn(cfg){
+  const isMF = cfg.id==='memefi';
+  const col = document.createElement('div');
+  col.className = 'col' + (isMF ? ' col-memefi' : '');
+  col.dataset.id = cfg.id;
+
+  let label='', count=0, sort='', tokens=[], rowFn=buildStdRow;
+  if(isMF){
+    label='💎 Meme-Fi'; count=memefi.length; sort='按 Discount ↓';
+    tokens=memefi; rowFn=buildMemeFiRow;
+  } else if(cfg.id==='new'){
+    label='🆕 New'; count=newTokens.length; sort='按市值 ↓'; tokens=newTokens;
+  } else if(cfg.id==='finalizing'){
+    label='⏳ Finalizing'; count=finalizingTokens.length; sort='按市值 ↓'; tokens=finalizingTokens;
+  } else {
+    label='✅ Migrated'; count=migratedTokens.length; sort='按持有人 ↓'; tokens=migratedTokens;
+  }
+
+  col.innerHTML = `
+    <div class="col-header">
+      <div class="col-title">${label} <span class="badge ${isMF?'badge-gold':''}">${count}</span></div>
+      <div class="col-sort">${sort}</div>
+    </div>
+    <div class="token-list" id="list-${cfg.id}"></div>`;
+
+  const list = col.querySelector(`#list-${cfg.id}`);
+  tokens.forEach(t => list.appendChild(rowFn(t)));
+  return col;
+}
+
+function renderColumns(){
+  const container = document.getElementById('cols');
+  container.innerHTML='';
+  colConfig.filter(c=>c.visible).forEach(c=>{
+    container.appendChild(buildColumn(c));
+  });
+}
+
+/* ─── Detail panel ──────────────────────────────────────────── */
+
+function openDetail(t){
+  document.getElementById('panelTitle').textContent = t.name;
+  const c = document.getElementById('panelContent');
+
+  if(t.type==='sol'){
+    c.innerHTML = `
+      <div class="pi">
+        <div class="pi-l">链 / 协议</div>
+        <div class="pi-v">
+          <span class="cb cb-sol">SOL</span>
+          <span class="dtag dtag-prot-sol">Rise.rich</span>
+        </div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Backing Asset</div>
+        <div class="pi-v">${t.backing==='SOL'
+          ? '<span class="pb pb-sol">SOL</span>'
+          : '<span class="pb pb-usdc">USDC</span>'}</div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Current Price</div>
+        <div class="pi-v">${t.price}</div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Floor Price</div>
+        <div class="pi-v">${t.floor}</div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Discount to Floor</div>
+        <div class="pi-v"><span class="dtag dtag-dis">${t.discount} above floor</span></div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">ATH</div>
+        <div class="pi-v neu" style="font-size:14px">${t.ath}</div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Loop Leverage Limit</div>
+        <div class="pi-v">${t.lev}</div>
+      </div>
+      <div class="div"></div>
+      <button class="abtn abtn-p" onclick="toast('地板价借贷 (Borrow) — Rise.rich')">地板价借贷 (Borrow)</button>
+      <button class="abtn abtn-s" onclick="toast('杠杆循环 (Loop) — Rise.rich')">杠杆循环 (Loop)</button>`;
+  } else {
+    c.innerHTML = `
+      <div class="pi">
+        <div class="pi-l">链 / 协议</div>
+        <div class="pi-v">
+          <span class="cb cb-bsc">BSC</span>
+          <span class="dtag dtag-prot-bsc">Likwid</span>
+        </div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Current Price</div>
+        <div class="pi-v">${t.price}</div>
+      </div>
+      <div class="pi">
+        <div class="pi-l">Isolated Margin / Max Lev</div>
+        <div class="pi-v">${t.lev}</div>
+      </div>
+      <div class="div"></div>
+      <div class="pi-l" style="margin-bottom:8px">选择杠杆倍数</div>
+      <div class="lev-row" id="levRow">
+        <button class="lbtn on">1x</button>
+        <button class="lbtn">2x</button>
+        <button class="lbtn">3x</button>
+        <button class="lbtn">5x</button>
+      </div>
+      <div class="two">
+        <button class="abtn abtn-long" onclick="toast('做多开仓 — Likwid 隔离保证金')">做多 Long</button>
+        <button class="abtn abtn-short" onclick="toast('做空开仓 — Likwid 隔离保证金')">做空 Short</button>
+      </div>`;
+    document.querySelectorAll('#levRow .lbtn').forEach(b=>{
+      b.addEventListener('click',function(){
+        document.querySelectorAll('#levRow .lbtn').forEach(x=>x.classList.remove('on'));
+        this.classList.add('on');
+      });
     });
+  }
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+/* ─── Settings panel ────────────────────────────────────────── */
+
+function renderSettings(){
+  const list = document.getElementById('settingsList');
+  list.innerHTML='';
+  colConfig.forEach((c,i)=>{
+    const row = document.createElement('div');
+    row.className='sr';
+    row.dataset.idx = i;
+    row.draggable = true;
+    row.innerHTML = `
+      <span class="sr-handle" title="拖动排序">⠿⠿</span>
+      <span class="sr-name">${c.label}</span>
+      <div class="sr-arrows">
+        <button class="arr" data-dir="up" data-idx="${i}" title="上移">▲</button>
+        <button class="arr" data-dir="dn" data-idx="${i}" title="下移">▼</button>
+      </div>
+      <label class="tog">
+        <input type="checkbox" ${c.visible?'checked':''} data-idx="${i}">
+        <span class="tog-sl"></span>
+      </label>`;
+    list.appendChild(row);
+  });
+
+  // up/down buttons
+  list.querySelectorAll('.arr').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const idx=+btn.dataset.idx, dir=btn.dataset.dir;
+      const swap = dir==='up' ? idx-1 : idx+1;
+      if(swap<0||swap>=colConfig.length) return;
+      [colConfig[idx],colConfig[swap]]=[colConfig[swap],colConfig[idx]];
+      renderSettings();
+    });
+  });
+
+  // toggle visibility
+  list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const idx=+cb.dataset.idx;
+      colConfig[idx].visible=cb.checked;
+    });
+  });
+
+  // drag-to-reorder
+  let dragSrc=null;
+  list.querySelectorAll('.sr').forEach(row=>{
+    row.addEventListener('dragstart',()=>{ dragSrc=+row.dataset.idx; row.style.opacity='.4'; });
+    row.addEventListener('dragend',  ()=>{ row.style.opacity='1'; });
+    row.addEventListener('dragover', e=>{ e.preventDefault(); });
+    row.addEventListener('drop', e=>{
+      e.preventDefault();
+      const target=+row.dataset.idx;
+      if(dragSrc===null||dragSrc===target) return;
+      const moved=colConfig.splice(dragSrc,1)[0];
+      colConfig.splice(target,0,moved);
+      dragSrc=null;
+      renderSettings();
+    });
+  });
+}
+
+/* ─── Toast ─────────────────────────────────────────────────── */
+window.toast = function(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.style.opacity='0',2000);
+};
+
+/* ─── Init ──────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  renderColumns();
+  renderSettings();
+
+  document.getElementById('btnCloseDetail').addEventListener('click',()=>{
+    document.getElementById('detailPanel').classList.remove('open');
+  });
+
+  document.getElementById('btnSettings').addEventListener('click',()=>{
+    renderSettings();
+    document.getElementById('settingsPanel').classList.add('open');
+  });
+  document.getElementById('btnCloseSettings').addEventListener('click',()=>{
+    document.getElementById('settingsPanel').classList.remove('open');
+  });
+  document.getElementById('btnApply').addEventListener('click',()=>{
+    document.getElementById('settingsPanel').classList.remove('open');
+    renderColumns();
+  });
+
+  document.getElementById('btnWallet').addEventListener('click',function(){
+    this.textContent='0x8f7…c3b2 ✓';
+    this.style.background='linear-gradient(135deg,#059669,#10b981)';
+  });
+});
+
 })();
 </script>
 </body>
