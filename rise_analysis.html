@@ -28,6 +28,7 @@
     strong { color: #cbd5e1; font-weight: 600; }
     ul, ol { padding-left: 20px; margin-bottom: 14px; }
     li { color: #94a3b8; font-size: 15px; margin-bottom: 8px; }
+    code { background: rgba(148,163,184,0.1); border-radius: 4px; padding: 1px 6px; font-family: 'SF Mono', Consolas, monospace; font-size: 13px; color: #93c5fd; }
     .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid #1e2a3a; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     thead tr { background: #0f172a; }
@@ -49,90 +50,234 @@
     .risk-high { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
     .risk-med { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
     .risk-content h4 { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 5px; }
-    .risk-content p { font-size: 13px; color: #64748b; margin: 0; }
+    .risk-content p { font-size: 13px; color: #64748b; margin: 0 0 6px; }
     .impl-item { display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid #1a2233; }
     .impl-item:last-child { border-bottom: none; }
     .impl-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(99,102,241,0.1); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .impl-content h4 { font-size: 15px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; }
     .impl-content p { font-size: 14px; color: #64748b; margin: 0; }
+    /* 借贷场景卡片 */
+    .scenario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0; }
+    .scenario-card { background: #0f172a; border: 1px solid #1e2a3a; border-radius: 10px; padding: 20px; }
+    .scenario-card .sc-num { font-size: 11px; font-weight: 700; color: #34d399; letter-spacing: 1px; margin-bottom: 8px; }
+    .scenario-card h4 { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+    .scenario-card p { font-size: 13px; color: #64748b; margin: 0; line-height: 1.6; }
+    .highlight-box { background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 18px 20px; margin: 16px 0; }
+    .highlight-box p { font-size: 14px; color: #a5b4fc; margin: 0; line-height: 1.7; }
+    .warning-box { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); border-left: 3px solid #ef4444; border-radius: 10px; padding: 18px 20px; margin: 16px 0; }
+    .warning-box p { font-size: 14px; color: #fca5a5; margin: 0; line-height: 1.7; }
+    /* details / summary */
+    details { margin: 20px 0 0; }
+    summary { cursor: pointer; color: #60a5fa; font-size: 14px; padding: 10px 0; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: '▶'; font-size: 10px; color: #3b82f6; transition: transform 0.2s; display: inline-block; }
+    details[open] summary::before { transform: rotate(90deg); }
+    .details-inner { margin-top: 16px; padding-top: 16px; border-top: 1px solid #1e2a3a; }
     .footer { text-align: center; color: #334155; font-size: 13px; padding: 32px 0 16px; }
-    @media (max-width: 640px) { .insight-grid { grid-template-columns: 1fr; } .section { padding: 24px 20px; } .header { padding: 32px 24px; } }
+    @media (max-width: 640px) { .insight-grid, .scenario-grid { grid-template-columns: 1fr; } .section { padding: 24px 20px; } .header { padding: 32px 24px; } }
   </style>
 </head>
 <body>
 <div class="container">
+
+  <!-- HEADER -->
   <div class="header">
     <div class="tag">深度调研报告</div>
-    <h1>RISE 协议：地板价机制能否重塑<br>Meme 发行赛道？</h1>
-    <div class="subtitle">Solana 新一代无许可 Token 发行平台 · 机制解析 · 竞品对比 · MemeRush 竞争启示</div>
+    <h1>RISE 协议：地板价 + 无清算借贷<br>能否重塑 Meme 发行赛道？</h1>
+    <div class="subtitle">Solana 新一代无许可 Token 发行平台 · 机制解析 · 竞品对比 · Meme-Fi 集成启示</div>
     <div class="meta-row">
       <div class="meta-item">来源<span>docs.rise.rich 官方文档</span></div>
       <div class="meta-item">日期<span>2026-05-29</span></div>
-      <div class="meta-item">分析模型<span>Claude Opus 4.6</span></div>
+      <div class="meta-item">更新<span>2026-06-04（floor 机制修正）</span></div>
     </div>
   </div>
 
+  <!-- VERDICT -->
   <div class="verdict">
     <div class="verdict-label">核心判断</div>
-    <p>RISE 是 meme 发行赛道一次有诚意的机制创新，但它的成功取决于两个未被验证的假设——①风险厌恶型 degen 是真实且足够大的市场；②偿付承诺在极端行情下能扛住考验。对 MemeRush 而言，<strong>真正的威胁不是 RISE 本身，而是它代表的「meme 金融化」趋势</strong>——交易聚合器必须在产品形态上做出回应，否则会被压缩为纯执行层。</p>
+    <p>RISE 是 meme 发行赛道一次有诚意的机制创新。两个核心差异化亮点：<strong>① 数学上可证明的 floor 偿付机制</strong>（不是营销承诺）；<strong>② 无清算的原生借贷和杠杆循环</strong>。对 Meme-Fi 而言，<strong>真正的机会是用聚合层把这两个能力包装成用户友好的策略工具</strong>——协议本身 UI 简陋，数据展示稀薄，空间完全存在。</p>
   </div>
 
+  <!-- SECTION 1：产品定位 -->
   <div class="section">
-    <h2><span class="section-num">1</span>产品定位与机制本质：用「协议自营做市商」替代 AMM</h2>
-    <p>RISE 在 Solana 上推出的「floor price + 弹性供应」模型，本质上是用<strong>协议自营 (protocol-owned) 的单边流动性</strong>替代了 Pump.fun 式的双边 AMM bonding curve。理解这一点至关重要——它不是在 Uniswap/Raydium 范式上叠加功能，而是把整个流动性架构重写。</p>
+    <h2><span class="section-num">1</span>产品定位与机制本质</h2>
+    <p>RISE 在 Solana 上推出的「floor price + 弹性供应」模型，本质是用<strong>协议自营 (protocol-owned) 的单边流动性</strong>替代了 Pump.fun 式的双边 AMM bonding curve。买入即铸造新 token，卖出即永久销毁，协议是唯一对手方，没有外部 LP，流动性永续存在。</p>
     <div class="insight-grid">
-      <div class="insight-card"><div class="num">机制 01</div><h4>弹性供应模型</h4><p>买入即铸造、卖出即永久销毁。协议是唯一对手方，没有 LP token，没有 k=xy 不变量。</p></div>
-      <div class="insight-card"><div class="num">机制 02</div><h4>Floor 偿付承诺</h4><p>类似 Olympus DAO 早期 RFV 概念，用在 meme 币场景。Floor 是协议对所有流通 token 同时赎回的偿付下界。</p></div>
-      <div class="insight-card"><div class="num">机制 03</div><h4>三路资金注入 Floor</h4><p>① 触达 rise target 时从市场流动性池切出；② 平台手续费持续回流；③ 借贷 origination fee。</p></div>
-      <div class="insight-card"><div class="num">核心创新</div><h4>价格发现与价格保底物理隔离</h4><p>市场价在 bonding curve 上自由波动，floor 单调递增。每个 meme token 变成「有内在价值下限的看涨期权」。</p></div>
+      <div class="insight-card">
+        <div class="num">机制 01</div>
+        <h4>弹性供应模型</h4>
+        <p>买入 → 铸造新 token；卖出 → 永久销毁 token。总供应量动态变化，不存在固定发行量。</p>
+      </div>
+      <div class="insight-card">
+        <div class="num">机制 02</div>
+        <h4>双池结构</h4>
+        <p>Floor Reserve Pool（FRP）专用于 floor 兑付；Trading Pool（TP）承载 floor 以上的价格波动。两个池物理隔离。</p>
+      </div>
+      <div class="insight-card">
+        <div class="num">机制 03</div>
+        <h4>Floor 资金注入</h4>
+        <p>每次买入铸造时，<code>F × n</code> SOL 精确注入 FRP；其余溢价进 TP。手续费和借贷 origination fee 持续补充储备。</p>
+      </div>
+      <div class="insight-card">
+        <div class="num">核心创新</div>
+        <h4>价格发现与价格保底物理隔离</h4>
+        <p>市场价在 bonding curve 上自由波动；floor 单调递增、数学上全额背书。每个 meme token 变成「有内在价值下限的看涨期权」。</p>
+      </div>
     </div>
   </div>
 
+  <!-- SECTION 2：借贷机制（重点） -->
   <div class="section">
-    <h2><span class="section-num">2</span>机制创新点的批判性分析</h2>
-    <h3>Floor 真的「永不下降」吗？数学上成立，博弈上有陷阱</h3>
-    <ul>
-      <li><strong>Floor 以背书资产计价。</strong>SOL 背书的 token，floor 是 SOL 计价的——SOL 从 $250 跌到 $80 时，floor 的 USD 购买力会腰斩。「bags can't go to zero」是相对承诺，不是绝对承诺。</li>
-      <li><strong>Floor ≠ 当前可成交价。</strong>卖出时执行价仍由 bonding curve 决定，floor 只是赎回保证。大量持有者同时卖出时，合约是否真正保证全员可赎回需要审计验证，文档未明示。</li>
-      <li><strong>冷却期机制（30s–120s）暴露了反操纵设计。</strong>冷却期是防御巨鲸拉高 floor 套利的必要手段，但也意味着牛市初期 floor 增长会显著滞后于市价。</li>
-    </ul>
-    <div class="table-wrap" style="margin:16px 0 24px;">
+    <h2><span class="section-num">2</span>借贷机制：无清算风险的原生杠杆工具</h2>
+    <p>借贷是 RISE 最具差异化的用户功能。它不是叠加在协议上的附加模块，而是 floor 机制的直接延伸——正是因为 floor 是数学上可证明的硬底，"无清算"才能成立。</p>
+
+    <h3>核心设计</h3>
+    <div class="table-wrap">
       <table>
-        <thead><tr><th>净流入</th><th>Floor 上升冷却期</th></tr></thead>
+        <thead><tr><th>参数</th><th>设计</th></tr></thead>
         <tbody>
-          <tr><td>&lt; $100k</td><td class="good">立即</td></tr>
-          <tr><td>$100k</td><td>30 秒</td></tr>
-          <tr><td>每增加 $100k</td><td>冷却时间递增</td></tr>
-          <tr><td>最大值</td><td>120 秒</td></tr>
+          <tr><td>抵押品估值基准</td><td>实时 floor price（非市价）</td></tr>
+          <tr><td>借出资产</td><td>SOL 或 USDC（与背书资产一致）</td></tr>
+          <tr><td>借款额度</td><td><code>floor_price × 抵押数量 × LTV 系数</code></td></tr>
+          <tr><td>利息</td><td>无持续利息，一次性 origination fee</td></tr>
+          <tr><td>清算风险</td><td class="good">无。永不触发清算。</td></tr>
+          <tr><td>还款</td><td>随时还，无锁定期，无到期日</td></tr>
         </tbody>
       </table>
     </div>
-    <h3>「无清算杠杆」是真正的差异化，但羊毛出在羊身上</h3>
-    <p><strong>杠杆能力与「token 已被验证的程度」正相关</strong>——这是精巧的内生约束，自动抑制早期极端杠杆行为。但 origination fee 一次性折现，如果费率 5–10%，对短期 loop 用户并不便宜。借款额度受限于 floor value（≈ 50% ATH），早期 floor 远低于市价时能借出的钱很少。</p>
-    <h3>隔离池设计——稳健但牺牲组合性</h3>
-    <p>每个 token 池子完全隔离，<strong>无法和 Solana DeFi 主网生态组合</strong>（不能进 Kamino、不能在 Jupiter 路由）。这是为偿付保证而做的必要牺牲，但让 RISE 成了「封闭花园」——token 从发行到死亡都活在 RISE 内部，不存在 graduation 概念。</p>
+
+    <h3>为什么永不清算</h3>
+    <div class="highlight-box">
+      <p>FRP 在任何时刻都满足 <code>FRP = floor × total_supply</code>，即每个流通 token 背后有精确的 floor 价值 SOL 备用。借款额度基于 floor（而非市价）× LTV（≤1）计算，因此<strong>抵押品的硬底价值始终 ≥ 借款额</strong>。清算的前提条件（抵押品价值跌破债务）在此设计中被永久移除。</p>
+    </div>
+
+    <h3>三个典型用户场景</h3>
+    <div class="scenario-grid">
+      <div class="scenario-card">
+        <div class="sc-num">场景 01</div>
+        <h4>锁定浮盈，不卖出</h4>
+        <p>代币涨了但不想卖（避税 / 保留上行敞口）→ 抵押借出 SOL/USDC 变现 → 原持仓不动，继续享受后续涨幅。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-num">场景 02</div>
+        <h4>Loop 做多</h4>
+        <p>抵押代币 → 借 SOL → 买入更多同一代币 → 再抵押借款 → 循环。以 floor 为底放大上行敞口，无强制平仓。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-num">场景 03</div>
+        <h4>跨资产部署</h4>
+        <p>长期看涨某 token，但短期需要资金参与其他机会 → 抵押借稳定币，用于链外 / 其他协议，等持仓升值。</p>
+      </div>
+    </div>
+
+    <h3>Loop 的杠杆数学与真实风险</h3>
+    <p>Loop 本质是以 floor 为底的高倍做多，最大杠杆率有数学上限：</p>
+    <div class="highlight-box">
+      <p><strong>最大杠杆率 = 市价(P) ÷ (市价(P) − floor(F))</strong><br>
+      示例：市价 = 2× floor → 最大 2× 杠杆；市价 = 1.1× floor → 最大 10× 杠杆。越接近 floor，可叠加的杠杆越高。</p>
+    </div>
+    <div class="warning-box">
+      <p><strong>无清算 ≠ 无损失。</strong> 若市价从入场点跌至 floor，实际亏损 = 跌幅 × 杠杆倍数。紧贴 floor 时 loop，绝对跌幅虽小，但杠杆放大后本金损失比例可观。仓位不被强平，但资金会长期被套，只能持有等待或以 floor 价割肉。</p>
+    </div>
   </div>
 
+  <!-- SECTION 3：Floor 机制（折叠） -->
   <div class="section">
-    <h2><span class="section-num">3</span>与 Pump.fun / Bonk.fun 的核心差异</h2>
+    <h2><span class="section-num">3</span>Floor 价格机制</h2>
+    <p>Floor 是协议对所有流通 token 的同时赎回承诺，单调递增，数学上可证明 100% 全额背书。</p>
+
+    <div class="insight-grid" style="margin-bottom:20px;">
+      <div class="insight-card">
+        <div class="num">实际公式</div>
+        <h4>floor = min(ATH×50%, FRP/supply)</h4>
+        <p>上限是 ATH×50%，实际取决于储备积累速度，价格涨快时可能长期低于上限。</p>
+      </div>
+      <div class="insight-card">
+        <div class="num">上调条件</div>
+        <h4>验证通过才上调</h4>
+        <p>仅当 FRP ≥ new_floor × total_supply 验证通过后才上调，任何时刻 floor 都是 100% 可兑付的。</p>
+      </div>
+    </div>
+
+    <details>
+      <summary>展开：Floor 成立的完整原理推导</summary>
+      <div class="details-inner">
+        <h3>双池结构与不变式</h3>
+        <p>买入时 SOL 分配（以市价 P 铸造 n 个 token，F = 当前 floor）：</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>资金流向</th><th>金额</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td>→ Floor Reserve Pool</td><td><code>F × n</code></td><td>精确覆盖新铸造 token 的 floor 义务</td></tr>
+              <tr><td>→ Trading Pool</td><td><code>(P − F) × n</code></td><td>floor 以上的价格波动流动性</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>不变式：FRP = floor × total_supply（任意时刻成立）</strong></p>
+
+        <h3>卖出的两种情形</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>情形</th><th>FRP 变化</th><th>Supply 变化</th><th>FRP/Supply 比值</th></tr></thead>
+            <tbody>
+              <tr><td>卖出在 floor 以上</td><td>不变</td><td>减少（tokens 销毁）</td><td class="good">提升 → floor 可上调</td></tr>
+              <tr><td>卖出在 floor（赎回）</td><td>减少 F×n</td><td>减少 n</td><td>不变，维持 floor</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>完全踩踏证明</h3>
+        <p>初始：FRP = F × S，supply = S。第 k 个卖家到达时：</p>
+        <p style="font-family:monospace;background:#0f172a;padding:12px 16px;border-radius:8px;color:#93c5fd;font-size:14px;">
+          剩余 FRP = F×S − F×k = F×(S−k)<br>
+          剩余 supply = S−k<br>
+          每 token 可兑 = F×(S−k) / (S−k) = <strong>F ✓</strong>
+        </p>
+        <p>最后一个卖家与第一个拿到完全相同的兑付。<strong>没有先到先得，没有 bank run 动机。</strong></p>
+
+        <h3>冷却期设计</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>净流入</th><th>Floor 上升冷却期</th></tr></thead>
+            <tbody>
+              <tr><td>&lt; $100k</td><td class="good">立即</td></tr>
+              <tr><td>$100k</td><td>30 秒</td></tr>
+              <tr><td>每增加 $100k</td><td>冷却时间递增</td></tr>
+              <tr><td>最大值</td><td>120 秒</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>冷却期防止巨鲸快速拉高 ATH 套利，但也导致牛市初期 floor 增长滞后于市价。</p>
+
+        <h3>隔离池设计</h3>
+        <p>每个 token 池完全独立，<strong>无法与 Solana DeFi 主网生态组合</strong>（不能进 Kamino、不能在 Jupiter 路由）。这是为偿付保证而做的必要牺牲，让 RISE 成了「封闭花园」——token 从发行到退出都活在 RISE 内部。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- SECTION 4：与 Pump.fun 对比 -->
+  <div class="section">
+    <h2><span class="section-num">4</span>与 Pump.fun / Bonk.fun 的核心差异</h2>
     <div class="table-wrap">
       <table>
         <thead><tr><th>维度</th><th>Pump.fun / Bonk.fun</th><th>RISE</th></tr></thead>
         <tbody>
           <tr><td>流动性模型</td><td>双边 AMM bonding curve，毕业后迁移至 Raydium/Meteora</td><td class="good">协议自营单边流动性，永不毕业</td></tr>
-          <tr><td>价格下限</td><td class="bad">无，可归零</td><td class="good">协议强制 floor，单调递增</td></tr>
+          <tr><td>价格下限</td><td class="bad">无，可归零</td><td class="good">协议强制 floor，单调递增，100% 背书</td></tr>
           <tr><td>退出机制</td><td class="bad">卖到 curve 底部 → 趋近 0</td><td class="good">最差卖到 floor（背书资产计价）</td></tr>
-          <tr><td>杠杆</td><td class="bad">无原生杠杆</td><td class="good">原生 floor 抵押借贷 + 无清算 loop</td></tr>
+          <tr><td>借贷</td><td class="bad">无</td><td class="good">原生 floor 抵押借贷，无清算，一次性手续费</td></tr>
+          <tr><td>杠杆</td><td class="bad">无原生杠杆</td><td class="good">无清算 loop，最大杠杆 = P/(P-F)</td></tr>
           <tr><td>组合性</td><td class="good">毕业后融入 Solana DeFi</td><td class="bad">隔离，无外部组合性</td></tr>
-          <tr><td>叙事</td><td>彩票+病毒传播，99% 归零</td><td>有保底的彩票，风险有界押注</td></tr>
+          <tr><td>叙事</td><td>彩票 + 病毒传播，99% 归零</td><td>有保底的彩票，风险有界押注</td></tr>
         </tbody>
       </table>
     </div>
-    <p style="margin-top:16px;"><strong>核心差异不在功能，而在叙事。</strong>熊市/震荡市对风险厌恶型 degen 有吸引力，但在牛市可能反而拖累——纯投机者要的是 0 或 1000x 的不对称性，floor 机制反而压制了上行（部分流动性被抽走做 floor）。</p>
+    <p style="margin-top:16px;"><strong>核心差异不在功能，而在叙事。</strong>熊市 / 震荡市对风险厌恶型 degen 有吸引力，但在牛市可能反而拖累——纯投机者要的是 0 或 1000x 的不对称性，floor 机制反而压制了上行（部分流动性被抽走做 floor）。</p>
   </div>
 
+  <!-- SECTION 5：商业模式与风险 -->
   <div class="section">
-    <h2><span class="section-num">4</span>商业模式与风险</h2>
+    <h2><span class="section-num">5</span>商业模式与风险</h2>
     <h3>商业模式</h3>
     <ul>
       <li><strong>手续费抽成</strong>：一部分回流 floor（产品力），一部分进协议金库（比例未明示）</li>
@@ -144,51 +289,65 @@
     <div style="margin-top:8px;">
       <div class="risk-item">
         <span class="risk-badge risk-high">高</span>
-        <div class="risk-content"><h4>偿付假设极端测试</h4><p>「全员同时赎回」+ 背书资产瞬时下跌，合约能否真正保证 floor 兑付？需要审计报告和压力测试，文档未提及。</p></div>
+        <div class="risk-content">
+          <h4>背书资产（SOL）价格风险</h4>
+          <p>Floor 偿付在 SOL 数量上有数学保证，但若 SOL 相对法币大幅贬值，floor 的美元价值会同步缩水。「bags can't go to zero」是 SOL 计价的相对承诺，不是绝对承诺。这是该模型最主要的系统性风险。</p>
+        </div>
       </div>
       <div class="risk-item">
         <span class="risk-badge risk-high">高</span>
-        <div class="risk-content"><h4>监管风险加剧</h4><p>floor + 借贷 + 杠杆让 token 看起来更像「有内在价值的金融工具」，SEC 视角下更容易被认定为证券。Pump.fun 已在打官司，RISE 法律风险敞口理论上更大。</p></div>
+        <div class="risk-content">
+          <h4>监管风险加剧</h4>
+          <p>floor + 借贷 + 杠杆让 token 看起来更像「有内在价值的金融工具」，SEC 视角下更容易被认定为证券。Pump.fun 已在打官司，RISE 法律风险敞口理论上更大。</p>
+        </div>
       </div>
       <div class="risk-item">
         <span class="risk-badge risk-med">中</span>
-        <div class="risk-content"><h4>冷启动困境</h4><p>没有外部 LP，所有早期流动性来自买盘本身，还要分一部分做 floor，早期价格弹性可能更差。</p></div>
+        <div class="risk-content">
+          <h4>冷启动困境</h4>
+          <p>没有外部 LP，所有早期流动性来自买盘本身，还要分一部分做 floor，早期价格弹性可能更差。</p>
+        </div>
       </div>
       <div class="risk-item">
         <span class="risk-badge risk-med">中</span>
-        <div class="risk-content"><h4>创作者侧吸引力存疑</h4><p>meme 创作者要的是病毒爆发力和早期套现，RISE 机制更利于持有者而非 dev，优质 meme 供给可能不足。</p></div>
+        <div class="risk-content">
+          <h4>创作者侧吸引力存疑</h4>
+          <p>meme 创作者要的是病毒爆发力和早期套现，RISE 机制更利于持有者而非 dev，优质 meme 供给可能不足。</p>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- SECTION 6：Meme-Fi 集成启示 -->
   <div class="section">
-    <h2><span class="section-num">5</span>对 MemeRush / Binance Web3 Wallet 的竞争启示</h2>
-    <p style="margin-bottom:20px;">MemeRush 作为交易聚合层而非发行协议，与 RISE 不直接对位。但 RISE 的出现透露了几个重要信号：</p>
+    <h2><span class="section-num">6</span>对 Meme-Fi / MemeRush 的集成启示</h2>
+    <p style="margin-bottom:20px;">MemeRush 作为交易聚合层而非发行协议，与 RISE 不直接对位。RISE 是 Meme-Fi Tab 在 Solana 侧的核心协议支撑。</p>
     <div class="impl-item">
       <div class="impl-icon">🎯</div>
-      <div class="impl-content"><h4>单纯做「更便宜更快的 Pump.fun」已无差异化空间</h4><p>赛道竞争正在从「发行效率」转向「产品机制创新」。MemeRush 如果只是聚合流动性，长期会被产品形态创新者侵蚀份额。</p></div>
+      <div class="impl-content"><h4>聚合器优势：数据 + 信号 + 执行一体</h4><p>RISE 原生 UI 缺乏 Meme 发现信号（涨跌速度、社交热度、持仓分布）。Meme-Fi 可以把 MemeRush 的链上指标与 RISE 的执行层打通——在发现信号的地方直接触发借贷 / loop 策略。</p></div>
     </div>
     <div class="impl-item">
-      <div class="impl-icon">🛡️</div>
-      <div class="impl-content"><h4>「风险有界的 meme 投机」是真实需求，币安用户更敏感</h4><p>可考虑：① 前端提供「风险评级」或 floor-like 指标；② 与 RISE 类协议建立路由优先级；③ 自建「RISE 风格」发行渠道，面向币安流量主打「零归零风险的 meme」。</p></div>
+      <div class="impl-icon">📊</div>
+      <div class="impl-content"><h4>统一仓位管理</h4><p>用户在 RISE 的借贷仓位（未偿借款、loop 杠杆倍数、距 floor 距离）需要跨协议聚合展示。Meme-Fi 可以做 RISE 仓位的统一 dashboard，这是协议本身不会做的事。</p></div>
     </div>
     <div class="impl-item">
       <div class="impl-icon">⚡</div>
-      <div class="impl-content"><h4>杠杆是被低估的留存武器</h4><p>RISE 把借贷原生集成进发行协议，对老用户留存极强。MemeRush 可利用币安借贷/合约基建做 meme token 杠杆产品——这是 Pump.fun 类竞品无法复制的 CEX 资源优势。</p></div>
+      <div class="impl-content"><h4>减少签名摩擦</h4><p>RISE 的 loop 操作需要多次签名（每次借款 + 买入各一次）。聚合层可以批量签名或预授权，把多步操作压缩为一次用户确认，大幅降低操作门槛。</p></div>
     </div>
     <div class="impl-item">
-      <div class="impl-icon">🔗</div>
-      <div class="impl-content"><h4>警惕「封闭花园」的反噬</h4><p>MemeRush 应强化跨协议聚合和组合性——这是聚合器对发行平台的根本优势，不要为模仿 RISE 而放弃这一点。</p></div>
+      <div class="impl-icon">🔔</div>
+      <div class="impl-content"><h4>风险预警推送</h4><p>协议本身不主动通知用户「你的 loop 仓位市价已接近 floor」。聚合层可以做这层通知，对策略用户是强留存点。</p></div>
     </div>
     <div class="impl-item">
       <div class="impl-icon">🌏</div>
-      <div class="impl-content"><h4>监管套利窗口</h4><p>RISE 在美国市场有明显合规风险。币安生态在亚洲、拉美、中东市场更友好，MemeRush 可以更激进地引入金融化机制（杠杆、保底产品），把「RISE 想做但因合规畏手畏脚」的事情做掉。</p></div>
+      <div class="impl-content"><h4>监管套利窗口</h4><p>RISE 在美国市场有明显合规风险。币安生态在亚洲、拉美、中东市场更友好，Meme-Fi 可以更激进地把借贷 / loop 功能作为核心卖点推出，把「RISE 想做但合规畏手畏脚」的事情做掉。</p></div>
     </div>
   </div>
 
   <div class="footer">
-    内容来源：<a href="https://docs.rise.rich" style="color: #4b5563;">docs.rise.rich</a> 官方文档 · 分析由 Claude Opus 4.6 生成 · 2026-05-29
+    内容来源：<a href="https://docs.rise.rich" style="color: #4b5563;">docs.rise.rich</a> 官方文档 · 分析由 Claude Opus 4.6 生成 · 2026-05-29 · floor 机制修正 2026-06-04
   </div>
+
 </div>
 </body>
 </html>
