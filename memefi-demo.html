@@ -3,1065 +3,1366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meme-Fi Demo</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Meme-Fi 交易终端</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC', sans-serif;
-            font-size: 13px;
-            background-color: #0b0e11;
-            color: #e8e8e8;
+        :root {
+          --bg-deep:#0a0b0e; --bg-base:#0f1011; --bg-card:#111214; --bg-panel:#151619;
+          --bg-input:#1a1c20; --border:#2b2f38; --border-sub:#1e2028;
+          --yellow:#F0B90B; --green:#0ECB81; --red:#F6465D; --purple:#9945FF; --indigo:#a5b4fc;
+          --t1:#e8e8e8; --t2:#848e9c; --t3:#5c6370;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,'PingFang SC',sans-serif;font-size:13px;background:var(--bg-deep);color:var(--t1);height:100vh;overflow:hidden}
+
+        /* 全局布局容器 */
+        .app {
+            display: flex;
+            flex-direction: column;
             height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .top-nav {
+            height: 44px;
+            background: var(--bg-base);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            flex-shrink: 0;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 24px;
+            font-weight: bold;
+            color: var(--yellow);
+        }
+        .nav-brand .dot {
+            color: var(--yellow);
+            font-size: 18px;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+        .nav-tab {
+            color: var(--t2);
+            cursor: pointer;
+            padding: 12px 0;
+            position: relative;
+            height: 44px;
+            line-height: 20px;
+        }
+        .nav-tab:hover { color: var(--t1); }
+        .nav-tab.active { color: var(--yellow); }
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--yellow);
+        }
+        .badge-new {
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: top;
+        }
+        .wallet-info { color: var(--t2); font-size: 12px; }
+        .wallet-sol { color: var(--t1); font-weight: 500; }
+
+        /* 行情条 */
+        .ticker-bar {
+            height: 32px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-sub);
             overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
         }
-
-        /* 顶部栏 */
-        .top-bar {
-            position: sticky; top: 0; height: 44px;
-            background-color: #0f1114; border-bottom: 1px solid #2b2f38;
-            display: flex; align-items: center; padding: 0 16px; z-index: 100;
-        }
-        .brand { color: #F0B90B; font-weight: 700; font-size: 15px; margin-right: 28px; display:flex; align-items:center; gap:6px; }
-        .brand-dot { width:7px; height:7px; background:#F0B90B; border-radius:50%; }
-        .top-tabs { display: flex; gap: 0; }
-        .top-tab {
-            height: 44px; line-height: 44px; padding: 0 16px;
-            color: #848E9C; cursor: pointer; font-size: 13px;
-            border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap;
-        }
-        .top-tab:hover { color: #e8e8e8; }
-        .top-tab.active { color: #fff; border-bottom-color: #F0B90B; }
-
-        /* 视图切换 */
-        .view { display: none; height: calc(100vh - 44px); flex-direction: column; }
-        .view.active { display: flex; }
-
-        /* 子标题栏 */
-        .sub-header {
-            height: 38px; background-color: #0d0f14;
-            border-bottom: 1px solid #1a1d24;
-            display: flex; align-items: center; padding: 0 14px;
-            justify-content: space-between; flex-shrink: 0;
-        }
-        .chain-filters { display: flex; gap: 6px; }
-        .chain-pill {
-            padding: 3px 10px; background-color: #131720;
-            border-radius: 3px; color: #848E9C; cursor: pointer;
-            transition: all .15s; border: none;
-            font-family: inherit; font-size: 11px; font-weight: 600;
-        }
-        .chain-pill:hover { background-color: #1a1d24; }
-        .chain-pill.active { background-color: rgba(240,185,11,.12); color: #F0B90B; }
-        .header-right { display: flex; align-items: center; gap: 8px; }
-        .sort-label { color: #848E9C; font-size: 11px; cursor: pointer; }
-        .icon-btn {
-            width: 26px; height: 26px; border-radius: 5px;
-            background-color: #131720; border: 1px solid #2b2f38;
-            color: #848E9C; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; font-size: 12px;
-            transition: all .15s;
-        }
-        .icon-btn:hover { border-color: #848E9C; color: #e8e8e8; }
-        .position-btn {
-            padding: 0 8px; height: 26px; background-color: #131720;
-            border: 1px solid #2b2f38; border-radius: 5px; color: #848E9C;
-            cursor: pointer; display: flex; align-items: center; gap: 4px;
-            font-size: 11px; font-weight: 600; transition: all .15s; position: relative;
-        }
-        .position-btn:hover { border-color: #F0B90B; color: #e8e8e8; }
-        .pos-badge {
-            background: #F6465D; color: #fff; border-radius: 8px;
-            font-size: 8px; font-weight: 800; padding: 1px 4px; line-height: 1.4;
-        }
-
-        /* 代币列表 */
-        .token-list { flex: 1; overflow-y: auto; }
-        .token-list::-webkit-scrollbar { width: 4px; }
-        .token-list::-webkit-scrollbar-thumb { background: #2b2f38; border-radius: 2px; }
-
-        .token-card {
-            padding: 10px 14px; border-bottom: 1px solid #131720;
-            cursor: pointer; display: flex; align-items: center;
-            gap: 10px; transition: background-color .1s;
-        }
-        .token-card:hover { background-color: #111520; }
-        .token-avatar {
-            width: 36px; height: 36px; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; position: relative; flex-shrink: 0;
-        }
-        .chain-dot {
-            position: absolute; bottom: -2px; left: -2px;
-            width: 12px; height: 12px; border-radius: 50%;
-            border: 2px solid #0b0e11; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 7px; font-weight: 800;
-        }
-        .bsc-dot { background: #F0B90B; color: #000; }
-        .sol-dot { background: #9945FF; color: #fff; }
-
-        .token-main { flex: 1; min-width: 0; }
-        .token-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
-        .token-name { font-weight: 700; font-size: 12px; }
-        .token-badge { padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
-        .floor-badge { background: rgba(153,69,255,.15); color: #9945FF; border: 1px solid rgba(153,69,255,.3); }
-        .vault-badge { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
-        .token-tags { display: flex; gap: 6px; font-size: 10px; color: #848E9C; flex-wrap: wrap; }
-        .tag { padding: 1px 5px; border-radius: 3px; background: #131720; color: #848E9C; }
-        .tag-g { background: rgba(14,203,129,.1); color: #0ECB81; }
-        .tag-r { background: rgba(246,70,93,.1); color: #F6465D; }
-
-        .token-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-        .price-section { text-align: right; }
-        .price { font-weight: 600; font-size: 12px; }
-        .floor-info { font-size: 10px; color: #9945FF; margin-top: 1px; }
-        .change { font-size: 11px; font-weight: 600; }
-        .change.pos { color: #0ECB81; }
-        .change.neg { color: #F6465D; }
-        .score-badge { background: #131720; color: #848E9C; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
-        .action-buttons { display: flex; gap: 4px; }
-
-        /* Buttons */
-        .btn {
-            padding: 3px 9px; border-radius: 4px; font-size: 10px; font-weight: 800;
-            cursor: pointer; border: none; transition: opacity .12s; font-family: inherit;
-        }
-        .btn:hover { opacity: .8; }
-        .btn-purple { background: rgba(153,69,255,.15); color: #9945FF; border: 1px solid rgba(153,69,255,.3); }
-        .btn-green  { background: rgba(14,203,129,.18);  color: #0ECB81; border: 1px solid rgba(14,203,129,.3); }
-        .btn-red    { background: rgba(246,70,93,.18);   color: #F6465D; border: 1px solid rgba(246,70,93,.3); }
-        .btn-yellow { background: rgba(240,185,11,.15);  color: #F0B90B; border: 1px solid rgba(240,185,11,.3); }
-
-        /* 右侧详情面板 */
-        .overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.5);
-            z-index: 199; opacity: 0; visibility: hidden; transition: all .25s;
-        }
-        .overlay.active { opacity: 1; visibility: visible; }
-
-        .detail-panel {
-            position: fixed; top: 0; right: 0; width: 400px; height: 100vh;
-            background: #0d0f14; border-left: 1px solid #2b2f38;
-            z-index: 200; transform: translateX(100%);
-            transition: transform .25s cubic-bezier(.32,.72,0,1);
-            overflow-y: auto; display: flex; flex-direction: column;
-        }
-        .detail-panel::-webkit-scrollbar { width: 4px; }
-        .detail-panel::-webkit-scrollbar-thumb { background: #2b2f38; border-radius: 2px; }
-        .detail-panel.active { transform: translateX(0); }
-
-        .panel-header {
-            padding: 0 14px; height: 44px; flex-shrink: 0;
-            border-bottom: 1px solid #1a1d24; background: #0f1114;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .panel-emoji { font-size: 18px; }
-        .panel-name { font-weight: 700; font-size: 14px; flex: 1; }
-        .panel-protocol { padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-        .rise-badge { background: rgba(153,69,255,.15); color: #9945FF; border: 1px solid rgba(153,69,255,.3); }
-        .likwid-badge { background: rgba(240,185,11,.12); color: #F0B90B; border: 1px solid rgba(240,185,11,.3); }
-        .close-btn {
-            width: 26px; height: 26px; border-radius: 5px; background: #131720;
-            border: 1px solid #2b2f38; color: #848E9C; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; transition: all .12s;
-        }
-        .close-btn:hover { border-color: #848E9C; color: #e8e8e8; }
-
-        /* SOL panel specifics */
-        .price-grid {
-            display: grid; grid-template-columns: repeat(3,1fr);
-            gap: 10px; padding: 12px 14px;
-            background: #0b0e11; margin: 14px; border-radius: 6px;
-        }
-        .price-item { display: flex; flex-direction: column; gap: 3px; }
-        .price-label { font-size: 10px; color: #848E9C; }
-        .price-value { font-weight: 700; font-size: 13px; }
-
-        .protocol-reserve { padding: 0 14px 14px; }
-        .reserve-label { font-size: 11px; color: #848E9C; margin-bottom: 5px; }
-        .reserve-value { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
-        .progress-bar { height: 4px; border-radius: 2px; background: #1a1d24; overflow: hidden; }
-        .progress-fill { height: 100%; background: #9945FF; }
-
-        .borrow-section {
-            background: #0b0e11; border-radius: 8px; margin: 0 14px 14px; padding: 14px;
-        }
-        .section-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
-        .step-hint { font-size: 11px; color: #848E9C; margin-bottom: 14px; }
-        .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .input-label { font-size: 11px; color: #848E9C; min-width: 54px; }
-        .number-input {
-            flex: 1; padding: 7px 10px; background: #131720;
-            border: 1px solid #2b2f38; border-radius: 4px;
-            color: #e8e8e8; font-family: inherit; font-size: 13px; font-weight: 600;
-        }
-        .number-input:focus { outline: none; border-color: #9945FF; }
-        .calc-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
-        .calc-label { color: #848E9C; }
-        .calc-value { color: #e8e8e8; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .risk-note { font-size: 10px; color: #848E9C; margin: 10px 0 14px; }
-        .confirm-btn {
-            width: 100%; padding: 10px; border: none; border-radius: 6px;
-            font-weight: 700; font-size: 13px; cursor: pointer;
-            transition: opacity .12s; font-family: inherit;
-        }
-        .confirm-btn:hover { opacity: .88; }
-        .confirm-btn-purple { background: #9945FF; color: #fff; }
-        .confirm-btn-green  { background: #0ECB81; color: #000; }
-        .confirm-btn-red    { background: #F6465D; color: #fff; }
-
-        .loop-section { margin: 0 14px 14px; border: 1px solid #2b2f38; border-radius: 6px; overflow: hidden; }
-        .loop-summary {
-            padding: 10px 14px; background: #131720; cursor: pointer;
-            font-size: 12px; font-weight: 600; color: #a5b4fc;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .loop-content { padding: 14px; background: #0d0f14; display: none; }
-        .loop-content.open { display: block; }
-        .loop-formula {
-            font-size: 12px; color: #a5b4fc; background: #0b0e11;
-            padding: 8px 10px; border-radius: 4px; margin-bottom: 10px;
-            font-variant-numeric: tabular-nums;
-        }
-        .loop-warning { font-size: 11px; color: #848E9C; }
-
-        /* BSC panel specifics */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(3,1fr);
-            gap: 10px; padding: 12px 14px;
-            background: #0b0e11; margin: 14px; border-radius: 6px;
-        }
-        .direction-toggle { display: flex; gap: 8px; margin: 0 14px 14px; }
-        .toggle-btn {
-            flex: 1; padding: 8px; border-radius: 5px;
-            border: 1px solid #2b2f38; background: #131720;
-            color: #848E9C; cursor: pointer; font-family: inherit;
-            font-size: 12px; font-weight: 600; transition: all .12s;
-        }
-        .toggle-btn.long.active  { background: rgba(14,203,129,.15); color: #0ECB81; border-color: rgba(14,203,129,.3); }
-        .toggle-btn.short.active { background: rgba(246,70,93,.15);  color: #F6465D; border-color: rgba(246,70,93,.3); }
-        .leverage-badge { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
-        .summary-box { background: #0b0e11; border-radius: 6px; padding: 12px; margin: 0 14px 14px; }
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 12px; }
-        .summary-item:last-child { margin-bottom: 0; }
-        .summary-label { color: #848E9C; }
-        .summary-value { color: #e8e8e8; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .bsc-confirm-wrap { padding: 0 14px 14px; }
-
-        /* 仓位抽屉 */
-        .drawer-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.55);
-            z-index: 299; opacity: 0; visibility: hidden; transition: all .25s; backdrop-filter: blur(2px);
-        }
-        .drawer-overlay.active { opacity: 1; visibility: visible; }
-        .position-drawer {
-            position: fixed; top: 0; right: 0; width: 540px; height: 100vh;
-            background: #0d0f14; border-left: 1px solid #2b2f38;
-            z-index: 300; transform: translateX(100%);
-            transition: transform .25s cubic-bezier(.32,.72,0,1);
-            display: flex; flex-direction: column;
-            box-shadow: -8px 0 32px rgba(0,0,0,.6);
-        }
-        .position-drawer.active { transform: translateX(0); }
-
-        .drawer-header {
-            height: 44px; padding: 0 14px; flex-shrink: 0;
-            border-bottom: 1px solid #2b2f38; background: #0f1114;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .drawer-title { font-weight: 700; font-size: 14px; flex: 1; }
-        .chain-badge { background: #1a2035; border: 1px solid #2b2f38; color: #848E9C; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-
-        .balance-row {
-            background: #0b0e11; padding: 10px 14px; flex-shrink: 0;
-            display: grid; grid-template-columns: repeat(3,1fr); border-bottom: 1px solid #1a1d24;
-        }
-        .balance-item { display: flex; flex-direction: column; gap: 3px; }
-        .balance-label { font-size: 10px; color: #848E9C; }
-        .balance-value { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
-
-        .drawer-tabs { display: flex; border-bottom: 1px solid #1a1d24; flex-shrink: 0; }
-        .drawer-tab {
-            height: 36px; line-height: 36px; padding: 0 18px;
-            font-size: 12px; color: #848E9C; cursor: pointer;
-            border-bottom: 2px solid transparent; transition: all .12s;
-        }
-        .drawer-tab:hover { color: #e8e8e8; }
-        .drawer-tab.active { color: #fff; border-bottom-color: #F0B90B; }
-
-        .tab-pane { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        .tab-pane.active { display: flex; }
-
-        .empty-state {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            color: #848E9C; font-size: 13px; flex-direction: column; gap: 8px;
-        }
-        .empty-icon { font-size: 34px; }
-
-        /* 警告横幅 */
-        .warn-banner {
-            background: rgba(246,70,93,.08); border-bottom: 1px solid rgba(246,70,93,.25);
-            padding: 7px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+        .marquee {
+            white-space: nowrap;
+            display: inline-block;
+            animation: marquee 30s linear infinite;
             font-size: 12px;
         }
-        .wb-tag { background: #F6465D; color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-
-        /* 仓位表 */
-        .pos-table-wrap { flex: 1; overflow: auto; }
-        .pos-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
-        .pos-table-wrap::-webkit-scrollbar-thumb { background: #2b2f38; border-radius: 2px; }
-        .pos-table { width: 100%; border-collapse: collapse; min-width: 460px; }
-        .pos-table thead th {
-            position: sticky; top: 0; background: #0d0f14;
-            border-bottom: 1px solid #1a1d24; padding: 7px 10px;
-            text-align: left; font-size: 9px; font-weight: 600; color: #4a5565;
-            text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
-        }
-        .pos-table tbody tr { border-bottom: 1px solid #131720; transition: background .1s; }
-        .pos-table tbody tr:hover { background: #111520; }
-        .pos-table tbody tr.danger-row { background: rgba(246,70,93,.04); }
-        .pos-table td { padding: 9px 10px; vertical-align: middle; white-space: nowrap; font-size: 12px; }
-        .dir-pill { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; }
-        .dir-pill.long  { background: rgba(14,203,129,.18); color: #0ECB81; }
-        .dir-pill.short { background: rgba(246,70,93,.18);  color: #F6465D; }
-        .lev-tag { display: inline-block; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 600; background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.35); margin-left: 3px; }
-        .ml-ok   { color: #F0B90B; }
-        .ml-warn { color: #F6465D; }
-        .liq-safe { color: #848E9C; font-size: 10px; }
-        .liq-danger { color: #F6465D; font-size: 10px; }
-        .act-cell { display: flex; gap: 4px; }
-        .act-btn { padding: 3px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; transition: opacity .12s; }
-        .act-btn:hover { opacity: .8; }
-        .act-repay { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.4); }
-        .act-close { background: rgba(246,70,93,.12);  color: #F6465D;  border: 1px solid rgba(246,70,93,.35); }
-        .act-add   { background: rgba(14,203,129,.1);  color: #0ECB81;  border: 1px solid rgba(14,203,129,.3); }
-
-        /* Meme-Fi subtabs */
-        .memefi-pane-inner { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .memefi-subtabs { display: flex; gap: 8px; padding: 10px 14px; flex-shrink: 0; border-bottom: 1px solid #1a1d24; }
-        .subtab { padding: 4px 12px; background: #131720; border-radius: 3px; color: #848E9C; cursor: pointer; font-size: 11px; font-weight: 600; transition: all .12s; }
-        .subtab.active { background: rgba(240,185,11,.12); color: #F0B90B; }
-        .subtab-pane { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        .subtab-pane.active { display: flex; }
-
-        /* SOL borrow summary */
-        .borrow-summary {
-            padding: 10px 14px; background: #0b0e11; border-top: 1px solid #1a1d24;
-            font-size: 11px; color: #848E9C; flex-shrink: 0;
+        .ticker-item { margin: 0 12px; display: inline-block; }
+        .positive { color: var(--green); }
+        .negative { color: var(--red); }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
-        /* Token List placeholder (view-list) */
-        .view-list-placeholder {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            flex-direction: column; gap: 12px; color: #848E9C;
+        /* 主内容区域 */
+        .content-row {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 76px);
         }
+
+        /* 左侧边栏 */
+        .left-sidebar {
+            width: 280px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .sidebar-header { padding: 14px 16px 10px; }
+        .sidebar-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+        .sidebar-subtitle { color: var(--t2); font-size: 12px; }
+        .sidebar-tabs {
+            display: flex;
+            padding: 0 12px;
+            border-bottom: 1px solid var(--border-sub);
+        }
+        .sidebar-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            color: var(--t2);
+            cursor: pointer;
+            position: relative;
+            font-size: 12px;
+        }
+        .sidebar-tab:hover { color: var(--t1); }
+        .sidebar-tab.active { color: var(--yellow); }
+        .sidebar-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 4px;
+            right: 4px;
+            height: 2px;
+            background: var(--yellow);
+            border-radius: 2px;
+        }
+        .sidebar-content { padding: 10px 14px; flex: 1; }
+        .position-section { margin-bottom: 14px; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--t2);
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .position-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 6px;
+            border-radius: 4px;
+            margin-bottom: 3px;
+            cursor: pointer;
+            gap: 4px;
+        }
+        .position-row:hover { background: var(--bg-input); }
+        .pos-name { flex: 2; font-size: 12px; font-weight: 500; }
+        .pos-dir { flex: 2; color: var(--t2); font-size: 11px; }
+        .pos-change { flex: 1.5; text-align: right; font-size: 12px; font-weight: 600; }
+        .pos-val { flex: 2; text-align: right; font-size: 12px; color: var(--t2); }
+        .position-controls {
+            display: flex;
+            gap: 8px;
+            padding: 12px 14px;
+            margin-top: auto;
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--t2);
+            padding: 7px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 12px;
+        }
+        .btn-ghost:hover { background: var(--bg-input); color: var(--t1); }
+        .btn-outline-red {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 7px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 12px;
+        }
+        .btn-outline-red:hover { background: rgba(246,70,93,0.1); }
+
+        /* 中心区域 */
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .center-tabs {
+            height: 40px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+        .center-tab {
+            color: var(--t2);
+            cursor: pointer;
+            padding: 10px 0;
+            position: relative;
+            font-size: 13px;
+            height: 40px;
+            line-height: 20px;
+            white-space: nowrap;
+        }
+        .center-tab:hover { color: var(--t1); }
+        .center-tab.active { color: var(--yellow); }
+        .center-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--yellow);
+        }
+        .filter-bar {
+            height: 40px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-sub);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+        .filter-left { display: flex; align-items: center; gap: 6px; flex: 1; }
+        .time-pill {
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 12px;
+            border: 1px solid transparent;
+            transition: all .12s;
+        }
+        .time-pill.active {
+            background: rgba(240,185,11,0.15);
+            color: var(--yellow);
+            border-color: rgba(240,185,11,0.4);
+        }
+        .chain-pill {
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 12px;
+            border: 1px solid transparent;
+            transition: all .12s;
+        }
+        .chain-pill.active {
+            border-color: var(--border);
+            color: var(--t1);
+            background: var(--bg-panel);
+        }
+        .filter-sep { color: var(--t3); }
+        .filter-right { display: flex; align-items: center; gap: 6px; }
+        .btn-filter {
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: var(--bg-input);
+            color: var(--t2);
+            cursor: pointer;
+            border: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .btn-filter:hover { background: var(--bg-panel); color: var(--t1); }
+
+        /* 代币表格 */
+        .token-table-container { flex: 1; overflow-y: auto; }
+        .token-table { width: 100%; border-collapse: collapse; min-width: 760px; }
+        .token-table thead {
+            position: sticky;
+            top: 0;
+            background: var(--bg-panel);
+            z-index: 10;
+        }
+        .token-table th {
+            color: var(--t2);
+            font-weight: 500;
+            text-align: left;
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border);
+            height: 34px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .token-table th:nth-child(1) { width: 32px; }
+        .token-table th:nth-child(2) { width: 140px; }
+        .token-table th:nth-child(3) { width: 90px; }
+        .token-table th:nth-child(4) { width: 86px; }
+        .token-table th:nth-child(5) { width: 120px; }
+        .token-table th:nth-child(6) { width: 96px; }
+        .token-table th:nth-child(7) { width: 86px; }
+        .token-table th:nth-child(8) { width: 68px; }
+        .token-table th:nth-child(9) { width: 68px; }
+        .token-table th:nth-child(10) { width: 96px; }
+        .token-table tbody tr {
+            height: 38px;
+            cursor: pointer;
+            transition: background .1s;
+        }
+        .token-table tbody tr:hover { background: var(--bg-input); }
+        .token-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.01); }
+        .token-table tbody tr:nth-child(even):hover { background: var(--bg-input); }
+        .token-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border-sub);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .star { color: var(--yellow); cursor: pointer; user-select: none; font-size: 14px; }
+        .star.empty { color: var(--t3); }
+        .token-cell { display: flex; align-items: center; gap: 6px; }
+        .token-emoji { font-size: 15px; }
+        .token-name { font-weight: 600; font-size: 13px; }
+        .protocol-cell { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+        .chain-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .bsc-dot { background: var(--yellow); }
+        .sol-dot { background: var(--indigo); }
+        .positive-change { color: var(--green); font-weight: 600; }
+        .negative-change { color: var(--red); font-weight: 600; }
+        .discount-pill {
+            background: rgba(246,70,93,0.2);
+            color: var(--red);
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid rgba(246,70,93,0.3);
+        }
+        .action-cell { display: flex; gap: 4px; align-items: center; }
+        .btn-long {
+            background: transparent;
+            border: 1px solid rgba(14,203,129,0.5);
+            color: var(--green);
+            padding: 2px 7px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            height: 24px;
+            white-space: nowrap;
+        }
+        .btn-long:hover { background: rgba(14,203,129,0.1); }
+        .btn-short {
+            background: transparent;
+            border: 1px solid rgba(246,70,93,0.5);
+            color: var(--red);
+            padding: 2px 7px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            height: 24px;
+        }
+        .btn-short:hover { background: rgba(246,70,93,0.1); }
+        .btn-borrow {
+            background: transparent;
+            border: 1px solid rgba(153,69,255,0.5);
+            color: var(--purple);
+            padding: 2px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            height: 24px;
+        }
+        .btn-borrow:hover { background: rgba(153,69,255,0.1); }
+
+        /* 代币详情视图 */
+        .token-detail-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .detail-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--t2);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .btn-back:hover { background: var(--bg-input); color: var(--t1); }
+        .detail-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .detail-chain { color: var(--t2); font-size: 13px; font-weight: normal; }
+        .detail-stats {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+        }
+        .detail-stat { text-align: right; }
+        .detail-stat-label { color: var(--t2); font-size: 11px; }
+        .detail-stat-value { font-size: 13px; font-weight: 600; margin-top: 1px; }
+        .detail-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 14px;
+            gap: 14px;
+            background: var(--bg-deep);
+        }
+        .chart-container {
+            flex: 3;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-title { color: var(--t2); font-size: 12px; margin-bottom: 10px; }
+        .chart-svg { width: 100%; flex: 1; }
+        .stats-card {
+            flex: 1.6;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow-y: auto;
+        }
+        .protocol-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .badge-bsc {
+            background: rgba(240,185,11,0.15);
+            color: var(--yellow);
+            border: 1px solid rgba(240,185,11,0.3);
+        }
+        .badge-sol {
+            background: rgba(153,69,255,0.15);
+            color: var(--purple);
+            border: 1px solid rgba(153,69,255,0.3);
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-sub);
+            font-size: 12px;
+        }
+        .stats-row:last-child { border-bottom: none; }
+        .stats-label { color: var(--t2); }
+        .stats-value { font-weight: 600; }
+        .stats-check { color: var(--green); font-weight: 600; }
+
+        /* 右侧面板 */
+        .right-panel {
+            width: 230px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .panel-header {
+            padding: 14px 14px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-sub);
+        }
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-sub);
+        }
+        .panel-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            background: transparent;
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 12px;
+            border-bottom: 2px solid transparent;
+            transition: all .12s;
+        }
+        .panel-tab:hover { color: var(--t1); }
+        .panel-tab.active {
+            color: var(--t1);
+            border-bottom-color: var(--purple);
+        }
+        .panel-content {
+            padding: 12px 14px;
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .panel-content.active { display: flex; }
+        .input-label {
+            color: var(--t2);
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        .amount-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 8px 10px;
+            color: var(--t1);
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .amount-input:focus { outline: none; border-color: var(--purple); }
+        .calc-box {
+            background: var(--bg-deep);
+            border-radius: 4px;
+            padding: 9px 10px;
+        }
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .calc-row:last-child { margin-bottom: 0; }
+        .calc-label { color: var(--t2); }
+        .calc-value { font-weight: 600; }
+        .calc-highlight { color: var(--indigo); font-weight: 700; font-size: 13px; }
+        .leverage-buttons {
+            display: flex;
+            gap: 4px;
+        }
+        .leverage-btn {
+            flex: 1;
+            padding: 5px 2px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--t2);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all .12s;
+        }
+        .leverage-btn.active {
+            border-color: var(--yellow);
+            color: var(--yellow);
+            background: rgba(240,185,11,0.1);
+        }
+        .btn-primary {
+            background: var(--purple);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            font-family: inherit;
+            transition: opacity .12s;
+        }
+        .btn-primary:hover { opacity: .85; }
+        .btn-green-full {
+            background: var(--green);
+            color: var(--bg-deep);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            width: 100%;
+            font-family: inherit;
+            transition: opacity .12s;
+        }
+        .btn-green-full:hover { opacity: .85; }
+        .btn-repay {
+            background: rgba(165,180,252,0.15);
+            color: var(--indigo);
+            border: 1px solid rgba(165,180,252,0.3);
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            font-family: inherit;
+            transition: opacity .12s;
+        }
+        .btn-repay:hover { opacity: .8; }
+        .direction-buttons { display: flex; gap: 6px; }
+        .direction-btn {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            color: var(--t2);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all .12s;
+        }
+        .direction-btn.long.active {
+            border-color: rgba(14,203,129,0.5);
+            color: var(--green);
+            background: rgba(14,203,129,0.1);
+        }
+        .direction-btn.short.active {
+            border-color: rgba(246,70,93,0.5);
+            color: var(--red);
+            background: rgba(246,70,93,0.1);
+        }
+        .summary-box {
+            background: var(--bg-deep);
+            border-radius: 4px;
+            padding: 9px 10px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .summary-row:last-child { margin-bottom: 0; }
+        .lever-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .lever-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--t1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            user-select: none;
+        }
+        .lever-btn:hover { background: var(--bg-panel); }
+        .lever-value { min-width: 40px; text-align: center; font-size: 22px; font-weight: 700; }
+        .feature-note {
+            font-size: 11px;
+            color: var(--green);
+            line-height: 1.5;
+        }
+        .risk-note {
+            font-size: 11px;
+            color: #f6a30b;
+            line-height: 1.5;
+        }
+        .outstanding-box {
+            background: var(--bg-deep);
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .outstanding-label { color: var(--t2); font-size: 11px; margin-bottom: 4px; }
+        .outstanding-value { font-size: 16px; font-weight: 700; color: var(--indigo); }
 
         /* Toast */
         .toast {
-            position: fixed; top: 56px; left: 50%; transform: translateX(-50%) translateY(-8px);
-            background: #131720; border-radius: 8px; z-index: 999;
-            opacity: 0; transition: opacity .2s, transform .2s;
-            pointer-events: none; white-space: nowrap;
-            padding: 8px 18px; font-size: 12px; font-weight: 600;
-            box-shadow: 0 4px 20px rgba(0,0,0,.5);
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 16px;
+            color: var(--t1);
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            font-size: 13px;
+            max-width: 260px;
         }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
-
-<div class="toast" id="toast"></div>
-
-<!-- ── TOP BAR ── -->
-<div class="top-bar">
-    <div class="brand"><div class="brand-dot"></div>MemeRush</div>
-    <div class="top-tabs">
-        <div class="top-tab" id="tab-list" onclick="switchView('list')">🔥 Token List</div>
-        <div class="top-tab active" id="tab-memefi" onclick="switchView('memefi')">💎 Meme-Fi</div>
-    </div>
-</div>
-
-<!-- ── VIEW: Token List (placeholder) ── -->
-<div class="view" id="view-list">
-    <div class="view-list-placeholder">
-        <div style="font-size:36px;">🔥</div>
-        <div style="font-size:14px;font-weight:600;color:#e8e8e8;">Token List</div>
-        <div>（切换到 💎 Meme-Fi 查看演示）</div>
-    </div>
-</div>
-
-<!-- ── VIEW: Meme-Fi ── -->
-<div class="view active" id="view-memefi">
-
-    <!-- Sub-header -->
-    <div class="sub-header">
-        <div class="chain-filters">
-            <button class="chain-pill active" data-filter="all">全部</button>
-            <button class="chain-pill" data-filter="bsc">BSC</button>
-            <button class="chain-pill" data-filter="sol">SOL</button>
-        </div>
-        <div class="header-right">
-            <div class="sort-label">综合评分 ▼</div>
-            <div class="icon-btn">⚙</div>
-            <div class="icon-btn">🔍</div>
-            <div class="position-btn" onclick="openDrawer()">📊 仓位 <span class="pos-badge">3</span></div>
-        </div>
-    </div>
-
-    <!-- Token List -->
-    <div class="token-list" id="tokenList">
-
-        <!-- 1. RUSH (SOL) Score 97 -->
-        <div class="token-card" data-chain="sol" data-token="rush">
-            <div class="token-avatar" style="background:#1a1535;">🌊<div class="chain-dot sol-dot">S</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">RUSH</span>
-                    <span class="token-badge floor-badge">🏦 Floor</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">-50% to floor</span>
-                    <span class="tag tag-g">24h +5.2%</span>
-                </div>
+    <div class="app">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="nav-brand">
+                <span class="dot">●</span>
+                <span>Binance Web3</span>
             </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">2.40 SOL</div>
-                    <div class="floor-info">Floor 1.20 SOL</div>
-                </div>
-                <div class="score-badge">Score 97</div>
-                <div class="action-buttons">
-                    <button class="btn btn-purple" onclick="event.stopPropagation();openDetail('rush')">Borrow</button>
-                </div>
+            <div class="nav-tabs">
+                <div class="nav-tab">现货交易</div>
+                <div class="nav-tab">MemeRush</div>
+                <div class="nav-tab active">💎 Meme-Fi <span class="badge-new">NEW</span></div>
+            </div>
+            <div class="wallet-info">
+                0x1A2...f3E4 · <span class="wallet-sol">12.45 SOL / 0.89 BNB</span>
             </div>
         </div>
 
-        <!-- 2. PEPE (BSC) Score 94 -->
-        <div class="token-card" data-chain="bsc" data-token="pepe">
-            <div class="token-avatar" style="background:#1e3a5f;">🐸<div class="chain-dot bsc-dot">B</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">PEPE</span>
-                    <span class="token-badge vault-badge">⚡ 5×</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">MC $3.2B</span>
-                    <span class="tag">Vol $420M</span>
-                </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">$0.00001842</div>
-                    <div class="change pos">+18.4%</div>
-                </div>
-                <div class="score-badge">Score 94</div>
-                <div class="action-buttons">
-                    <button class="btn btn-green" onclick="event.stopPropagation();openDetailDir('pepe','long')">L↑</button>
-                    <button class="btn btn-red"   onclick="event.stopPropagation();openDetailDir('pepe','short')">S↓</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. MOON (SOL) Score 91 -->
-        <div class="token-card" data-chain="sol" data-token="moon">
-            <div class="token-avatar" style="background:#0e2030;">🌙<div class="chain-dot sol-dot">S</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">MOON</span>
-                    <span class="token-badge floor-badge">🏦 Floor</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">-29% to floor</span>
-                    <span class="tag tag-g">24h +12.8%</span>
-                </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">0.85 SOL</div>
-                    <div class="floor-info">Floor 0.60 SOL</div>
-                </div>
-                <div class="score-badge">Score 91</div>
-                <div class="action-buttons">
-                    <button class="btn btn-purple" onclick="event.stopPropagation();openDetail('moon')">Borrow</button>
-                </div>
+        <!-- 行情条 -->
+        <div class="ticker-bar">
+            <div class="marquee">
+                <span class="ticker-item">🌊 RUSH <span class="positive">+120.5%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🌙 MOON <span class="positive">+42.3%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐸 PEPE <span class="negative">-4.6%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐕 DOGE2 <span class="positive">+8.2%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐸 FROG <span class="positive">+91.2%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🎭 DEGEN <span class="positive">+8.4%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🌊 RUSH <span class="positive">+120.5%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🌙 MOON <span class="positive">+42.3%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐸 PEPE <span class="negative">-4.6%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐕 DOGE2 <span class="positive">+8.2%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🐸 FROG <span class="positive">+91.2%</span></span>
+                <span class="ticker-item" style="color:var(--t3)">·</span>
+                <span class="ticker-item">🎭 DEGEN <span class="positive">+8.4%</span></span>
             </div>
         </div>
 
-        <!-- 4. DOGE2 (BSC) Score 88 -->
-        <div class="token-card" data-chain="bsc" data-token="doge2">
-            <div class="token-avatar" style="background:#1a3320;">🐕<div class="chain-dot bsc-dot">B</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">DOGE2</span>
-                    <span class="token-badge vault-badge">⚡ 3×</span>
+        <!-- 主内容 -->
+        <div class="content-row">
+            <!-- 左侧边栏 -->
+            <div class="left-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">我的仓位</div>
+                    <div class="sidebar-subtitle">总资产 2,456.78 USDT</div>
                 </div>
-                <div class="token-tags">
-                    <span class="tag">MC $850M</span>
-                    <span class="tag">Vol $78M</span>
+                <div class="sidebar-tabs">
+                    <div class="sidebar-tab" onclick="switchSidebarTab(this)">现货</div>
+                    <div class="sidebar-tab" onclick="switchSidebarTab(this)">合约</div>
+                    <div class="sidebar-tab active" onclick="switchSidebarTab(this)">💎 Meme-Fi</div>
                 </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">$0.00000052</div>
-                    <div class="change pos">+42.1%</div>
+                <div class="sidebar-content">
+                    <div class="position-section">
+                        <div class="section-header">
+                            <span>🟡</span><span>BSC · Likwid</span>
+                            <span style="color:var(--t3);font-size:10px;margin-left:auto;">隔离保证金</span>
+                        </div>
+                        <div class="position-row" onclick="openToken('pepe')">
+                            <div class="pos-name">🐸 PEPE</div>
+                            <div class="pos-dir">做多 3×</div>
+                            <div class="pos-change positive">+12.4%</div>
+                            <div class="pos-val">¥234.50</div>
+                        </div>
+                        <div class="position-row" onclick="openToken('cats')">
+                            <div class="pos-name">🐱 CATS</div>
+                            <div class="pos-dir">做多 2×</div>
+                            <div class="pos-change negative">-3.2%</div>
+                            <div class="pos-val">¥89.20</div>
+                        </div>
+                    </div>
+                    <div class="position-section">
+                        <div class="section-header">
+                            <span>🔵</span><span>SOL · Rise.rich</span>
+                            <span style="color:var(--t3);font-size:10px;margin-left:auto;">永久地板价</span>
+                        </div>
+                        <div class="position-row" onclick="openToken('rush')">
+                            <div class="pos-name">🌊 RUSH</div>
+                            <div class="pos-dir">已借 0.8 SOL · ×3</div>
+                            <div class="pos-change positive">+28.4%</div>
+                            <div class="pos-val">¥456.80</div>
+                        </div>
+                        <div class="position-row" onclick="openToken('moon')">
+                            <div class="pos-name">🌙 MOON</div>
+                            <div class="pos-dir">持有中</div>
+                            <div class="pos-change positive">+5.8%</div>
+                            <div class="pos-val">¥123.40</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="score-badge">Score 88</div>
-                <div class="action-buttons">
-                    <button class="btn btn-green" onclick="event.stopPropagation();openDetailDir('doge2','long')">L↑</button>
-                    <button class="btn btn-red"   onclick="event.stopPropagation();openDetailDir('doge2','short')">S↓</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. FROG (SOL) Score 85 -->
-        <div class="token-card" data-chain="sol" data-token="frog">
-            <div class="token-avatar" style="background:#102820;">🐸<div class="chain-dot sol-dot">S</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">FROG</span>
-                    <span class="token-badge floor-badge">🏦 Floor</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">-44% to floor</span>
-                    <span class="tag tag-g">24h +8.3%</span>
-                </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">3.20 SOL</div>
-                    <div class="floor-info">Floor 1.80 SOL</div>
-                </div>
-                <div class="score-badge">Score 85</div>
-                <div class="action-buttons">
-                    <button class="btn btn-purple" onclick="event.stopPropagation();openDetail('frog')">Borrow</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. DEGEN (SOL) Score 82 -->
-        <div class="token-card" data-chain="sol" data-token="degen">
-            <div class="token-avatar" style="background:#1e1535;">🎭<div class="chain-dot sol-dot">S</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">DEGEN</span>
-                    <span class="token-badge floor-badge">🏦 Floor</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">-37% to floor</span>
-                    <span class="tag tag-r">24h -2.1%</span>
+                <div class="position-controls">
+                    <button class="btn-outline-red" onclick="showToast('⚠ 一键平仓：Demo 模式')">一键平仓</button>
+                    <button class="btn-ghost" onclick="showToast('管理仓位')">管理仓位</button>
                 </div>
             </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">1.52 SOL</div>
-                    <div class="floor-info">Floor 0.95 SOL</div>
+
+            <!-- 中心区域 -->
+            <div class="center-panel">
+                <div class="center-tabs">
+                    <div class="center-tab" onclick="switchCenterTab(this)">热门</div>
+                    <div class="center-tab" onclick="switchCenterTab(this)">聪明钱</div>
+                    <div class="center-tab" onclick="switchCenterTab(this)">社交热度</div>
+                    <div class="center-tab" onclick="switchCenterTab(this)">Alpha</div>
+                    <div class="center-tab" onclick="switchCenterTab(this)">证券代币</div>
+                    <div class="center-tab active" onclick="switchCenterTab(this)">💎 Meme-Fi</div>
                 </div>
-                <div class="score-badge">Score 82</div>
-                <div class="action-buttons">
-                    <button class="btn btn-purple" onclick="event.stopPropagation();openDetail('degen')">Borrow</button>
+                <div class="filter-bar">
+                    <div class="filter-left">
+                        <div class="time-pill active" onclick="switchTimePill(this)">1h</div>
+                        <div class="time-pill" onclick="switchTimePill(this)">4h</div>
+                        <div class="time-pill" onclick="switchTimePill(this)">24h</div>
+                        <span class="filter-sep">·</span>
+                        <div class="chain-pill active" onclick="toggleChainPill(this)">🟡 BSC</div>
+                        <div class="chain-pill active" onclick="toggleChainPill(this)">🔵 SOL</div>
+                    </div>
+                    <div class="filter-right">
+                        <button class="btn-filter">⚡ 筛选</button>
+                        <button class="btn-filter">👁 隐藏</button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 7. CATS (BSC) Score 79 -->
-        <div class="token-card" data-chain="bsc" data-token="cats">
-            <div class="token-avatar" style="background:#2a1a0e;">🐱<div class="chain-dot bsc-dot">B</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">CATS</span>
-                    <span class="token-badge vault-badge">⚡ 4×</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">MC $320M</span>
-                    <span class="tag">Vol $45M</span>
-                </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">$0.00000091</div>
-                    <div class="change pos">+28.7%</div>
-                </div>
-                <div class="score-badge">Score 79</div>
-                <div class="action-buttons">
-                    <button class="btn btn-green" onclick="event.stopPropagation();openDetailDir('cats','long')">L↑</button>
-                    <button class="btn btn-red"   onclick="event.stopPropagation();openDetailDir('cats','short')">S↓</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 8. SHIB2 (BSC) Score 74 -->
-        <div class="token-card" data-chain="bsc" data-token="shib2">
-            <div class="token-avatar" style="background:#1f1a0a;">🐶<div class="chain-dot bsc-dot">B</div></div>
-            <div class="token-main">
-                <div class="token-header">
-                    <span class="token-name">SHIB2</span>
-                    <span class="token-badge vault-badge">⚡ 2×</span>
-                </div>
-                <div class="token-tags">
-                    <span class="tag">MC $280K</span>
-                    <span class="tag">Vol $32K</span>
-                </div>
-            </div>
-            <div class="token-right">
-                <div class="price-section">
-                    <div class="price">$0.00000018</div>
-                    <div class="change neg">-6.2%</div>
-                </div>
-                <div class="score-badge">Score 74</div>
-                <div class="action-buttons">
-                    <button class="btn btn-green" onclick="event.stopPropagation();openDetailDir('shib2','long')">L↑</button>
-                    <button class="btn btn-red"   onclick="event.stopPropagation();openDetailDir('shib2','short')">S↓</button>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /token-list -->
-</div><!-- /view-memefi -->
-
-<!-- ═══════════════════════════════════════════
-     RIGHT DETAIL PANEL — SOL / Rise.rich
-════════════════════════════════════════════ -->
-<div class="overlay" id="detail-overlay" onclick="closeDetail()"></div>
-
-<div class="detail-panel" id="sol-panel">
-    <div class="panel-header">
-        <span class="panel-emoji" id="sol-emoji">🌊</span>
-        <span class="panel-name" id="sol-name">RUSH</span>
-        <span class="panel-protocol rise-badge">Rise.rich</span>
-        <div class="close-btn" onclick="closeDetail()">✕</div>
-    </div>
-
-    <div class="price-grid">
-        <div class="price-item">
-            <div class="price-label">当前价</div>
-            <div class="price-value" id="sol-price">2.40 SOL</div>
-        </div>
-        <div class="price-item">
-            <div class="price-label">地板价</div>
-            <div class="price-value" style="color:#9945FF" id="sol-floor">1.20 SOL</div>
-        </div>
-        <div class="price-item">
-            <div class="price-label">ATH</div>
-            <div class="price-value" id="sol-ath">2.80 SOL</div>
-        </div>
-    </div>
-
-    <div class="protocol-reserve">
-        <div class="reserve-label">协议储备金 (FRP)</div>
-        <div class="reserve-value" id="sol-reserve">45,200 SOL</div>
-        <div class="progress-bar"><div class="progress-fill" id="sol-reserve-bar" style="width:60%"></div></div>
-    </div>
-
-    <div class="borrow-section">
-        <div class="section-title">借贷 · 无清算风险</div>
-        <div class="step-hint">① 持有 <span id="sol-step-name">RUSH</span> → ② 输入抵押数量 → ③ 一键借款</div>
-        <div class="input-row">
-            <div class="input-label">抵押数量</div>
-            <input type="number" class="number-input" id="sol-collateral" value="100" min="1" oninput="updateSolCalc()">
-        </div>
-        <div class="calc-row"><span class="calc-label">地板价估值</span><span class="calc-value" id="sol-floor-val">120.00 SOL</span></div>
-        <div class="calc-row"><span class="calc-label">可借金额 (80% LTV)</span><span class="calc-value" id="sol-borrowable">96.00 SOL</span></div>
-        <div class="risk-note">无清算风险 · 一次性手续费 0.5% · 按地板价足额背书</div>
-        <button class="confirm-btn confirm-btn-purple" id="sol-borrow-btn" onclick="confirmBorrow()">借出 96.00 SOL</button>
-    </div>
-
-    <div class="loop-section">
-        <div class="loop-summary" onclick="this.nextElementSibling.classList.toggle('open')">⚡ Loop 循环杠杆 <span style="margin-left:auto;font-size:10px;color:#848E9C;">展开</span></div>
-        <div class="loop-content" id="loop-content">
-            <div class="loop-formula" id="loop-formula">最大杠杆 = 2.40 ÷ (2.40 − 1.20) = 2.0×</div>
-            <div class="loop-warning">价格越接近地板价，杠杆倍数越高。示例：市价 = 1.25× floor 时可达 5×。<br>⚠ 无清算不等于无损失，杠杆放大跌幅。</div>
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     RIGHT DETAIL PANEL — BSC / Likwid
-════════════════════════════════════════════ -->
-<div class="detail-panel" id="bsc-panel">
-    <div class="panel-header">
-        <span class="panel-emoji" id="bsc-emoji">🐸</span>
-        <span class="panel-name" id="bsc-name">PEPE</span>
-        <span class="panel-protocol likwid-badge">Likwid BSC</span>
-        <div class="close-btn" onclick="closeDetail()">✕</div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="price-item">
-            <div class="price-label">当前价</div>
-            <div class="price-value" id="bsc-price">$0.00001842</div>
-        </div>
-        <div class="price-item">
-            <div class="price-label">MC</div>
-            <div class="price-value" id="bsc-mc">$3.2B</div>
-        </div>
-        <div class="price-item">
-            <div class="price-label">Vol</div>
-            <div class="price-value" id="bsc-vol">$420M</div>
-        </div>
-    </div>
-
-    <div class="direction-toggle" id="bsc-dir-toggle">
-        <button class="toggle-btn long active" onclick="setDir('long',this)">做多 LONG</button>
-        <button class="toggle-btn short"       onclick="setDir('short',this)">做空 SHORT</button>
-    </div>
-
-    <div style="padding: 0 14px 14px;">
-        <div class="input-row">
-            <div class="input-label">保证金</div>
-            <input type="number" class="number-input" id="bsc-collateral" value="100" min="1" oninput="updateBscCalc()">
-            <span style="font-size:11px;color:#848E9C;">USDT</span>
-        </div>
-        <div style="font-size:11px;color:#848E9C;margin-bottom:10px;">杠杆 <span class="leverage-badge" id="bsc-lev">5×</span></div>
-    </div>
-
-    <div class="summary-box">
-        <div class="summary-item"><span class="summary-label">预计借入</span><span class="summary-value" id="bsc-borrow">400 USDT</span></div>
-        <div class="summary-item"><span class="summary-label">清算价格</span><span class="summary-value" id="bsc-liq">$0.00001231</span></div>
-        <div class="summary-item"><span class="summary-label">手续费</span><span class="summary-value">0.3%</span></div>
-    </div>
-
-    <div class="bsc-confirm-wrap">
-        <button class="confirm-btn confirm-btn-green" id="bsc-confirm-btn" onclick="confirmPos()">开仓做多</button>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     POSITION DRAWER
-════════════════════════════════════════════ -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-
-<div class="position-drawer" id="pos-drawer">
-    <div class="drawer-header">
-        <span class="drawer-title">仓位</span>
-        <span class="chain-badge">BSC</span>
-        <span class="chain-badge">SOL</span>
-        <div class="icon-btn">⚙</div>
-        <div class="close-btn" onclick="closeDrawer()">✕</div>
-    </div>
-
-    <div class="balance-row">
-        <div class="balance-item">
-            <div class="balance-label">总资产</div>
-            <div class="balance-value">$1,240.50</div>
-        </div>
-        <div class="balance-item">
-            <div class="balance-label">未实现盈亏</div>
-            <div class="balance-value" style="color:#0ECB81;">+$16.10</div>
-        </div>
-        <div class="balance-item">
-            <div class="balance-label">持仓数</div>
-            <div class="balance-value">5</div>
-        </div>
-    </div>
-
-    <div class="drawer-tabs">
-        <div class="drawer-tab" data-tab="spot">现货</div>
-        <div class="drawer-tab" data-tab="futures">合约&nbsp;<span style="background:rgba(246,70,93,.2);color:#F6465D;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;">1⚠</span></div>
-        <div class="drawer-tab active" data-tab="memefi">Meme-Fi</div>
-    </div>
-
-    <!-- 现货 pane -->
-    <div class="tab-pane" id="pane-spot">
-        <div class="empty-state"><div class="empty-icon">📭</div>暂无现货持仓</div>
-    </div>
-
-    <!-- 合约 pane -->
-    <div class="tab-pane" id="pane-futures">
-        <div class="warn-banner">
-            <span class="wb-tag">⚠ 危险</span>
-            <span style="color:#F6465D;">DOGE2 SHORT 距清算价仅 <strong>-10.8%</strong>，建议立即 Repay</span>
-        </div>
-        <div class="pos-table-wrap">
-            <table class="pos-table">
-                <thead><tr><th>Token</th><th>方向/杠杆</th><th>保证金</th><th>Margin Level</th><th>未实现 PnL</th><th>开仓价/清算价</th><th>操作</th></tr></thead>
-                <tbody>
-                    <tr>
-                        <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-size:12px;">🐸</div><div><div style="font-size:12px;font-weight:600;">PEPE</div><div style="font-size:10px;color:#848E9C;">PEPE/USDT</div></div></div></td>
-                        <td><span class="dir-pill long">LONG</span><span class="lev-tag">3×</span></td>
-                        <td><div>5.43M PEPE</div><div style="font-size:10px;color:#0ECB81;">Total 6.77M</div></td>
-                        <td><div class="ml-ok" style="font-weight:700;">178%</div></td>
-                        <td><div style="color:#0ECB81;font-weight:700;">+$12.40</div><div style="font-size:10px;color:#0ECB81;">+12.4%</div></td>
-                        <td><div style="font-variant-numeric:tabular-nums;">$0.00001842</div><div class="liq-safe">Liq. $0.00001231</div></td>
-                        <td><div class="act-cell"><button class="act-btn act-add">Add</button><button class="act-btn act-repay">Repay</button><button class="act-btn act-close">Close</button></div></td>
-                    </tr>
-                    <tr class="danger-row">
-                        <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#1a3320;display:flex;align-items:center;justify-content:center;font-size:12px;">🐕</div><div><div style="font-size:12px;font-weight:600;">DOGE2</div><div style="font-size:10px;color:#848E9C;">DOGE2/USDT</div></div></div></td>
-                        <td><span class="dir-pill short">SHORT</span><span class="lev-tag">5×</span></td>
-                        <td><div>50 USDT</div><div style="font-size:10px;color:#F6465D;">Total 41.70 ⚠</div></td>
-                        <td><div class="ml-warn" style="font-weight:700;">112% ⚠</div></td>
-                        <td><div style="color:#F6465D;font-weight:700;">-$8.30</div><div style="font-size:10px;color:#F6465D;">-16.6%</div></td>
-                        <td><div style="font-variant-numeric:tabular-nums;">$0.00000052</div><div class="liq-danger">Liq. $0.00000058 (-10.8%)</div></td>
-                        <td><div class="act-cell"><button class="act-btn act-repay" style="color:#F6465D;border-color:rgba(246,70,93,.5);">Repay</button><button class="act-btn act-close">Close</button></div></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Meme-Fi pane -->
-    <div class="tab-pane active" id="pane-memefi">
-        <div class="memefi-pane-inner">
-            <div class="memefi-subtabs">
-                <div class="subtab active" data-subtab="bsc">BSC · Likwid</div>
-                <div class="subtab" data-subtab="sol">SOL · Rise.rich</div>
-            </div>
-
-            <!-- BSC subtab -->
-            <div class="subtab-pane active" id="subpane-bsc">
-                <div class="pos-table-wrap">
-                    <table class="pos-table">
-                        <thead><tr><th>Token</th><th>方向/杠杆</th><th>保证金</th><th>未实现 PnL</th><th>开仓价/清算价</th><th>操作</th></tr></thead>
-                        <tbody>
+                <!-- 代币列表 -->
+                <div class="token-table-container" id="tokenTableContainer">
+                    <table class="token-table">
+                        <thead>
                             <tr>
-                                <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-size:12px;">🐸</div><div><div style="font-weight:600;">PEPE</div><div style="font-size:10px;color:#848E9C;">保证金仓位</div></div></div></td>
-                                <td><span class="dir-pill long">LONG</span><span class="lev-tag">3×</span></td>
-                                <td>5.43M PEPE</td>
-                                <td><span style="color:#0ECB81;font-weight:700;">+$12.40</span></td>
-                                <td><div>$0.00001842</div><div class="liq-safe">Liq. $0.00001231</div></td>
-                                <td><div class="act-cell"><button class="act-btn act-repay">Repay</button><button class="act-btn act-close">Close</button></div></td>
+                                <th></th>
+                                <th>代币</th>
+                                <th>协议</th>
+                                <th>流动性</th>
+                                <th>持有者/币安持有</th>
+                                <th>价格</th>
+                                <th>地板价</th>
+                                <th>1h%</th>
+                                <th>折价</th>
+                                <th>操作</th>
                             </tr>
-                            <tr class="danger-row">
-                                <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#1a3320;display:flex;align-items:center;justify-content:center;font-size:12px;">🐕</div><div><div style="font-weight:600;">DOGE2</div><div style="font-size:10px;color:#848E9C;">保证金仓位</div></div></div></td>
-                                <td><span class="dir-pill short">SHORT</span><span class="lev-tag">5×</span></td>
-                                <td><span style="color:#F6465D;">50 USDT ⚠</span></td>
-                                <td><span style="color:#F6465D;font-weight:700;">-$8.30</span></td>
-                                <td><div>$0.00000052</div><div class="liq-danger">Liq. $0.00000058 ⚠</div></td>
-                                <td><div class="act-cell"><button class="act-btn act-repay" style="color:#F6465D;border-color:rgba(246,70,93,.5);">Repay</button><button class="act-btn act-close">Close</button></div></td>
-                            </tr>
-                        </tbody>
+                        </thead>
+                        <tbody id="tokenTableBody"></tbody>
                     </table>
                 </div>
+
+                <!-- 代币详情视图 -->
+                <div class="token-detail-view" id="tokenDetailView">
+                    <div class="detail-header">
+                        <button class="btn-back" onclick="closeToken()">← 返回列表</button>
+                        <div class="detail-title">
+                            <span id="detailEmoji"></span>
+                            <span id="detailName"></span>
+                            <span class="detail-chain" id="detailChain"></span>
+                        </div>
+                        <div class="detail-stats">
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">当前价格</div>
+                                <div class="detail-stat-value" id="detailPrice"></div>
+                            </div>
+                            <div class="detail-stat" id="detailFloorStat">
+                                <div class="detail-stat-label">地板价</div>
+                                <div class="detail-stat-value" style="color:var(--yellow)" id="detailFloor"></div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">1h涨跌</div>
+                                <div class="detail-stat-value" id="detailChange"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                        <div class="chart-container">
+                            <div class="chart-title">1h 价格走势</div>
+                            <svg class="chart-svg" id="chartSvg"></svg>
+                        </div>
+                        <div class="stats-card" id="statsCard"></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- SOL subtab -->
-            <div class="subtab-pane" id="subpane-sol">
-                <div class="pos-table-wrap">
-                    <table class="pos-table">
-                        <thead><tr><th>Token</th><th>抵押量</th><th>地板价</th><th>已借</th><th>LTV</th><th>操作</th></tr></thead>
-                        <tbody>
-                            <tr>
-                                <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#1a1535;display:flex;align-items:center;justify-content:center;font-size:12px;">🌊</div><div><div style="font-weight:600;">RUSH</div><div style="font-size:10px;color:#9945FF;">Rise.rich · SOL</div></div></div></td>
-                                <td>100 RUSH</td>
-                                <td style="color:#9945FF;">1.20 SOL</td>
-                                <td style="font-weight:600;">80 SOL</td>
-                                <td><span style="color:#0ECB81;font-weight:600;">67%</span></td>
-                                <td><div class="act-cell"><button class="act-btn act-repay">Repay</button></div></td>
-                            </tr>
-                            <tr>
-                                <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:26px;height:26px;border-radius:5px;background:#102820;display:flex;align-items:center;justify-content:center;font-size:12px;">🐸</div><div><div style="font-weight:600;">FROG</div><div style="font-size:10px;color:#9945FF;">Rise.rich · SOL</div></div></div></td>
-                                <td>200 FROG</td>
-                                <td style="color:#9945FF;">1.80 SOL</td>
-                                <td style="font-weight:600;">250 SOL</td>
-                                <td><span style="color:#0ECB81;font-weight:600;">69%</span></td>
-                                <td><div class="act-cell"><button class="act-btn act-repay">Repay</button><button class="act-btn act-add">加仓</button></div></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- 右侧面板 -->
+            <div class="right-panel" id="rightPanel">
+                <!-- SOL / Rise.rich 借贷面板 -->
+                <div id="panelSol" style="display:none;flex-direction:column;flex:1;">
+                    <div class="panel-header">💜 Rise.rich 借贷</div>
+                    <div class="panel-tabs">
+                        <div class="panel-tab active" onclick="switchRightTab('borrow',this)">借款</div>
+                        <div class="panel-tab" onclick="switchRightTab('repay',this)">还款</div>
+                        <div class="panel-tab" onclick="switchRightTab('lever',this)">循环杠杆</div>
+                    </div>
+                    <!-- 借款 -->
+                    <div id="tabBorrow" class="panel-content active">
+                        <div>
+                            <div class="input-label">抵押数量 (tokens)</div>
+                            <input type="number" class="amount-input" id="collateralQty" value="1000" oninput="updateBorrowCalc()">
+                        </div>
+                        <div class="calc-box">
+                            <div class="calc-row">
+                                <span class="calc-label">可借金额</span>
+                                <span class="calc-highlight" id="borrowableAmount">0.96 SOL</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">地板价</span>
+                                <span class="calc-value" id="floorPriceDisplay">1.20 SOL</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">LTV</span>
+                                <span class="calc-value">80%</span>
+                            </div>
+                            <div style="color:var(--t3);font-size:10px;margin-top:5px;">= 地板价 × 数量 × LTV</div>
+                        </div>
+                        <button class="btn-primary" onclick="showToast('✅ 借款成功，SOL 已转入钱包')">确认借款 →</button>
+                        <div class="feature-note">⚡ 无清算风险 · 一次性手续费 0.5%</div>
+                    </div>
+                    <!-- 还款 -->
+                    <div id="tabRepay" class="panel-content">
+                        <div class="outstanding-box">
+                            <div class="outstanding-label">当前借款</div>
+                            <div class="outstanding-value">0.80 SOL</div>
+                        </div>
+                        <button class="btn-repay" onclick="showToast('✅ 还款成功')">全部还款</button>
+                        <div class="feature-note">还款后抵押品自动释放</div>
+                    </div>
+                    <!-- 循环杠杆 -->
+                    <div id="tabLever" class="panel-content">
+                        <div>
+                            <div class="input-label" style="margin-bottom:8px;">循环次数</div>
+                            <div class="lever-counter">
+                                <div class="lever-btn" onclick="adjustLever(-1)">−</div>
+                                <div class="lever-value" id="leverCount">3</div>
+                                <div class="lever-btn" onclick="adjustLever(1)">+</div>
+                            </div>
+                        </div>
+                        <div class="calc-box">
+                            <div class="calc-row">
+                                <span class="calc-label">预计杠杆</span>
+                                <span class="calc-highlight" id="impliedLeverage">3.2×</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">持仓增量</span>
+                                <span class="calc-value" id="positionDelta">+2,000 tokens</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="showToast('✅ 循环杠杆执行完成')">执行循环 →</button>
+                        <div class="risk-note">⚠ 市价跌至 floor 时损失被杠杆放大，请谨慎</div>
+                    </div>
                 </div>
-                <div class="borrow-summary">
-                    总借款: <strong style="color:#e8e8e8;">330 SOL</strong> · 预计利息: 一次性手续费 · <span style="color:#0ECB81;">无清算风险</span>
+
+                <!-- BSC / Likwid 交易面板 -->
+                <div id="panelBsc" style="display:none;flex-direction:column;flex:1;">
+                    <div class="panel-header">🟡 Likwid 做多/做空</div>
+                    <div style="padding:10px 14px;display:flex;flex-direction:column;gap:10px;flex:1;">
+                        <div class="direction-buttons">
+                            <div class="direction-btn long active" id="btnLong" onclick="setDirection('long')">▲ 做多</div>
+                            <div class="direction-btn short" id="btnShort" onclick="setDirection('short')">▼ 做空</div>
+                        </div>
+                        <div>
+                            <div class="input-label">投入金额 (BNB)</div>
+                            <input type="number" class="amount-input" id="tradeAmount" value="0.1" oninput="updateBscCalc()">
+                        </div>
+                        <div>
+                            <div class="input-label">杠杆倍数</div>
+                            <div class="leverage-buttons" id="leverageBtns"></div>
+                        </div>
+                        <div class="summary-box" id="bscSummary">
+                            <div class="summary-row">
+                                <span style="color:var(--t2)">预计持仓</span>
+                                <span id="estPosition">0.30 BNB</span>
+                            </div>
+                            <div class="summary-row">
+                                <span style="color:var(--t2)">入场价</span>
+                                <span id="estEntry">$0.00024</span>
+                            </div>
+                            <div class="summary-row">
+                                <span style="color:var(--t2)">最大杠杆</span>
+                                <span style="color:var(--green)" id="maxLevDisplay">5×</span>
+                            </div>
+                        </div>
+                        <button class="btn-green-full" id="actionBtn" onclick="executeTrade()">做多 PEPE 3×</button>
+                        <div style="font-size:10px;color:var(--t3);line-height:1.5;">仓位由 Likwid 协议托管 · 隔离保证金</div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
     </div>
 
-</div><!-- /pos-drawer -->
+    <script>
+        const tokens = [
+            {id:'pepe', chain:'bsc',emoji:'🐸',name:'PEPE', liq:'$626.9K',holders:'12,450',bn:'843',   price:'$0.00024',floor:'—',  change:-4.58,disc:'—',  floorV:0,   maxLev:5},
+            {id:'doge2',chain:'bsc',emoji:'🐕',name:'DOGE2',liq:'$284.2K',holders:'8,320', bn:'291',   price:'$0.00189',floor:'—',  change:+8.21,disc:'—',  floorV:0,   maxLev:3},
+            {id:'cats', chain:'bsc',emoji:'🐱',name:'CATS', liq:'$198.5K',holders:'5,670', bn:'156',   price:'$0.00045',floor:'—',  change:+3.02,disc:'—',  floorV:0,   maxLev:4},
+            {id:'shib2',chain:'bsc',emoji:'🐶',name:'SHIB2',liq:'$156.3K',holders:'3,890', bn:'89',    price:'$0.00012',floor:'—',  change:-2.25,disc:'—',  floorV:0,   maxLev:2},
+            {id:'rush', chain:'sol',emoji:'🌊',name:'RUSH', liq:'$1.28M', holders:'28,450',bn:'1.2K',  price:'2.40 SOL',floor:'1.20 SOL',change:+12.5,disc:'-50%',floorV:1.20,maxLev:0},
+            {id:'moon', chain:'sol',emoji:'🌙',name:'MOON', liq:'$620.4K',holders:'15,230',bn:'680',   price:'0.85 SOL',floor:'0.60 SOL',change:+5.8, disc:'-29%',floorV:0.60,maxLev:0},
+            {id:'frog', chain:'sol',emoji:'🐸',name:'FROG', liq:'$980.7K',holders:'22,100',bn:'890',   price:'3.20 SOL',floor:'1.80 SOL',change:+91.2,disc:'-44%',floorV:1.80,maxLev:0},
+            {id:'degen',chain:'sol',emoji:'🎭',name:'DEGEN',liq:'$445.6K',holders:'11,780',bn:'420',   price:'1.52 SOL',floor:'0.95 SOL',change:+8.4, disc:'-37%',floorV:0.95,maxLev:0},
+        ];
 
-<script>
-// ── Data ──────────────────────────────────────
-const tokens = {
-  rush:  { chain:'sol', emoji:'🌊', price:'2.40 SOL', floor:1.20, ath:'2.80 SOL', reserve:'45,200 SOL', reservePct:60 },
-  moon:  { chain:'sol', emoji:'🌙', price:'0.85 SOL', floor:0.60, ath:'1.10 SOL', reserve:'12,800 SOL', reservePct:45 },
-  frog:  { chain:'sol', emoji:'🐸', price:'3.20 SOL', floor:1.80, ath:'4.10 SOL', reserve:'68,400 SOL', reservePct:72 },
-  degen: { chain:'sol', emoji:'🎭', price:'1.52 SOL', floor:0.95, ath:'2.10 SOL', reserve:'28,600 SOL', reservePct:55 },
-  pepe:  { chain:'bsc', emoji:'🐸', price:'$0.00001842', lev:5, mc:'$3.2B', vol:'$420M', liqPrice:'$0.00001231' },
-  doge2: { chain:'bsc', emoji:'🐕', price:'$0.00000052', lev:3, mc:'$850M', vol:'$78M',  liqPrice:'$0.00000038' },
-  cats:  { chain:'bsc', emoji:'🐱', price:'$0.00000091', lev:4, mc:'$320M', vol:'$45M',  liqPrice:'$0.00000065' },
-  shib2: { chain:'bsc', emoji:'🐶', price:'$0.00000018', lev:2, mc:'$280K', vol:'$32K',  liqPrice:'$0.00000012' },
-};
-let curToken = 'rush';
-let curDir = 'long';
+        let selected = null;
+        let currentDirection = 'long';
+        let currentLeverage = 3;
+        let currentRightTab = 'borrow';
+        const starred = new Set(['doge2','rush']);
 
-// ── View switching ────────────────────────────
-function switchView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.top-tab').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + v).classList.add('active');
-  document.getElementById('tab-' + v).classList.add('active');
-}
+        function renderTable() {
+            const tbody = document.getElementById('tokenTableBody');
+            let html = '';
+            for (const t of tokens) {
+                const isStar = starred.has(t.id);
+                const proto = t.chain === 'bsc'
+                    ? '<span class="chain-dot bsc-dot"></span> Likwid'
+                    : '<span class="chain-dot sol-dot"></span> Rise.rich';
+                const chg = t.change >= 0
+                    ? `<span class="positive-change">+${t.change.toFixed(1)}%</span>`
+                    : `<span class="negative-change">${t.change.toFixed(1)}%</span>`;
+                const disc = t.disc === '—' ? '<span style="color:var(--t3)">—</span>'
+                    : `<span class="discount-pill">${t.disc}</span>`;
+                const actions = t.chain === 'bsc'
+                    ? `<button class="btn-long" onclick="event.stopPropagation();openToken('${t.id}');setDirection('long')">▲做多</button>
+                       <button class="btn-short" onclick="event.stopPropagation();openToken('${t.id}');setDirection('short')">▼做空</button>`
+                    : `<button class="btn-borrow" onclick="event.stopPropagation();openToken('${t.id}')">借款</button>`;
+                html += `<tr onclick="openToken('${t.id}')">
+                    <td><span class="star ${isStar?'':'empty'}" onclick="toggleStar('${t.id}',event)">${isStar?'★':'☆'}</span></td>
+                    <td><div class="token-cell"><span class="token-emoji">${t.emoji}</span><span class="token-name">${t.name}</span></div></td>
+                    <td><div class="protocol-cell">${proto}</div></td>
+                    <td>${t.liq}</td>
+                    <td>${t.holders}<span style="color:var(--t3)"> / </span>${t.bn}</td>
+                    <td>${t.price}</td>
+                    <td>${t.floor === '—' ? '<span style="color:var(--t3)">—</span>' : t.floor}</td>
+                    <td>${chg}</td>
+                    <td>${disc}</td>
+                    <td class="action-cell">${actions}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+        }
 
-// ── Chain filter ──────────────────────────────
-document.querySelectorAll('.chain-pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    document.querySelectorAll('.chain-pill').forEach(p => p.classList.remove('active'));
-    pill.classList.add('active');
-    const f = pill.dataset.filter;
-    document.querySelectorAll('.token-card').forEach(card => {
-      card.style.display = (f === 'all' || card.dataset.chain === f) ? 'flex' : 'none';
-    });
-  });
-});
+        function openToken(id) {
+            const t = tokens.find(x => x.id === id);
+            if (!t) return;
+            selected = t;
 
-// ── Token card click ──────────────────────────
-document.querySelectorAll('.token-card').forEach(card => {
-  card.addEventListener('click', () => openDetail(card.dataset.token));
-});
+            document.getElementById('tokenTableContainer').style.display = 'none';
+            const dv = document.getElementById('tokenDetailView');
+            dv.style.display = 'flex';
+            document.getElementById('rightPanel').style.display = 'flex';
 
-// ── Open detail panel ─────────────────────────
-function openDetail(id) {
-  curToken = id;
-  const t = tokens[id];
-  closeDetail(true); // close without removing overlay
-  if (t.chain === 'sol') {
-    document.getElementById('sol-emoji').textContent = t.emoji;
-    document.getElementById('sol-name').textContent = id.toUpperCase();
-    document.getElementById('sol-step-name').textContent = id.toUpperCase();
-    document.getElementById('sol-price').textContent = t.price;
-    document.getElementById('sol-floor').textContent = t.floor + ' SOL';
-    document.getElementById('sol-ath').textContent = t.ath;
-    document.getElementById('sol-reserve').textContent = t.reserve;
-    document.getElementById('sol-reserve-bar').style.width = t.reservePct + '%';
-    document.getElementById('sol-collateral').value = 100;
-    updateSolCalc();
-    document.getElementById('sol-panel').classList.add('active');
-  } else {
-    document.getElementById('bsc-emoji').textContent = t.emoji;
-    document.getElementById('bsc-name').textContent = id.toUpperCase();
-    document.getElementById('bsc-price').textContent = t.price;
-    document.getElementById('bsc-mc').textContent = t.mc;
-    document.getElementById('bsc-vol').textContent = t.vol;
-    document.getElementById('bsc-lev').textContent = t.lev + '×';
-    document.getElementById('bsc-liq').textContent = t.liqPrice;
-    // reset direction
-    curDir = 'long';
-    document.querySelectorAll('#bsc-dir-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('#bsc-dir-toggle .toggle-btn.long').classList.add('active');
-    document.getElementById('bsc-collateral').value = 100;
-    updateBscCalc();
-    document.getElementById('bsc-panel').classList.add('active');
-  }
-  document.getElementById('detail-overlay').classList.add('active');
-}
+            // Header
+            document.getElementById('detailEmoji').textContent = t.emoji + ' ';
+            document.getElementById('detailName').textContent = t.name;
+            document.getElementById('detailChain').textContent = t.chain === 'bsc' ? ' · BSC / Likwid' : ' · SOL / Rise.rich';
+            document.getElementById('detailPrice').textContent = t.price;
+            const floorStat = document.getElementById('detailFloorStat');
+            if (t.chain === 'sol') {
+                floorStat.style.display = '';
+                document.getElementById('detailFloor').textContent = t.floor;
+            } else {
+                floorStat.style.display = 'none';
+            }
+            const chgEl = document.getElementById('detailChange');
+            chgEl.textContent = (t.change >= 0 ? '+' : '') + t.change.toFixed(1) + '%';
+            chgEl.style.color = t.change >= 0 ? 'var(--green)' : 'var(--red)';
 
-function openDetailDir(id, dir) {
-  curDir = dir;
-  openDetail(id);
-  // set direction after panel opens
-  document.querySelectorAll('#bsc-dir-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('#bsc-dir-toggle .toggle-btn.' + dir).classList.add('active');
-  updateBscCalc();
-}
+            // Stats card
+            const sc = document.getElementById('statsCard');
+            if (t.chain === 'sol') {
+                sc.innerHTML = `
+                    <div class="protocol-badge badge-sol">🔵 Rise.rich</div>
+                    <div class="stats-row"><span class="stats-label">地板价</span><span class="stats-value" style="color:var(--yellow)">${t.floor}</span></div>
+                    <div class="stats-row"><span class="stats-label">ATH</span><span class="stats-value">${(t.floorV * 2.33).toFixed(2)} SOL</span></div>
+                    <div class="stats-row"><span class="stats-label">折价率</span><span class="stats-value" style="color:var(--red)">${t.disc}</span></div>
+                    <div class="stats-row"><span class="stats-label">协议储备</span><span class="stats-value">${(t.floorV * 20000).toLocaleString()} SOL</span></div>
+                    <div class="stats-row"><span class="stats-label">背书资产</span><span class="stats-value">SOL</span></div>
+                    <div class="stats-row"><span class="stats-label">手续费</span><span class="stats-value">一次性 0.5%</span></div>
+                    <div class="stats-row"><span class="stats-label">无清算风险</span><span class="stats-check">✓ 是</span></div>
+                `;
+                // Right panel SOL
+                document.getElementById('panelSol').style.display = 'flex';
+                document.getElementById('panelBsc').style.display = 'none';
+                document.getElementById('floorPriceDisplay').textContent = t.floor;
+                updateBorrowCalc();
+                switchRightTab(currentRightTab);
+            } else {
+                sc.innerHTML = `
+                    <div class="protocol-badge badge-bsc">🟡 Likwid</div>
+                    <div class="stats-row"><span class="stats-label">流动性</span><span class="stats-value">${t.liq}</span></div>
+                    <div class="stats-row"><span class="stats-label">持有者</span><span class="stats-value">${t.holders}</span></div>
+                    <div class="stats-row"><span class="stats-label">币安持有</span><span class="stats-value">${t.bn}</span></div>
+                    <div class="stats-row"><span class="stats-label">最大杠杆</span><span class="stats-value" style="color:var(--green)">${t.maxLev}×</span></div>
+                    <div class="stats-row"><span class="stats-label">隔离保证金</span><span class="stats-check">✓ 是</span></div>
+                `;
+                // Right panel BSC
+                document.getElementById('panelBsc').style.display = 'flex';
+                document.getElementById('panelSol').style.display = 'none';
+                document.getElementById('maxLevDisplay').textContent = t.maxLev + '×';
+                renderLeverageButtons(t);
+                updateBscCalc();
+            }
 
-function closeDetail(keepOverlay) {
-  document.getElementById('sol-panel').classList.remove('active');
-  document.getElementById('bsc-panel').classList.remove('active');
-  if (!keepOverlay) document.getElementById('detail-overlay').classList.remove('active');
-}
+            drawChart(t);
+        }
 
-// ── SOL calc ──────────────────────────────────
-function updateSolCalc() {
-  const t = tokens[curToken];
-  if (!t || t.chain !== 'sol') return;
-  const qty = Math.max(0, parseFloat(document.getElementById('sol-collateral').value) || 0);
-  const floorVal = (t.floor * qty).toFixed(2);
-  const borrowable = (t.floor * qty * 0.8).toFixed(2);
-  document.getElementById('sol-floor-val').textContent = floorVal + ' SOL';
-  document.getElementById('sol-borrowable').textContent = borrowable + ' SOL';
-  document.getElementById('sol-borrow-btn').textContent = '借出 ' + borrowable + ' SOL';
-  // Loop formula
-  const p = parseFloat(t.price);
-  const f = t.floor;
-  const maxLev = (p / (p - f)).toFixed(1);
-  document.getElementById('loop-formula').textContent =
-    `最大杠杆 = ${p} ÷ (${p} − ${f}) = ${maxLev}×`;
-}
+        function closeToken() {
+            document.getElementById('tokenTableContainer').style.display = 'block';
+            document.getElementById('tokenDetailView').style.display = 'none';
+            document.getElementById('rightPanel').style.display = 'none';
+            selected = null;
+        }
 
-// ── BSC calc ──────────────────────────────────
-function setDir(dir, btn) {
-  curDir = dir;
-  document.querySelectorAll('#bsc-dir-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  updateBscCalc();
-}
+        function drawChart(t) {
+            const svg = document.getElementById('chartSvg');
+            svg.innerHTML = '';
+            const rect = svg.getBoundingClientRect();
+            const W = rect.width || 500;
+            const H = rect.height || 260;
+            const mg = {t:20, r:55, b:28, l:12};
+            const cw = W - mg.l - mg.r;
+            const ch = H - mg.t - mg.b;
 
-function updateBscCalc() {
-  const t = tokens[curToken];
-  if (!t || t.chain !== 'bsc') return;
-  const collateral = Math.max(0, parseFloat(document.getElementById('bsc-collateral').value) || 0);
-  const borrow = (collateral * (t.lev - 1)).toFixed(0);
-  document.getElementById('bsc-borrow').textContent = borrow + ' USDT';
-  const btn = document.getElementById('bsc-confirm-btn');
-  if (curDir === 'long') {
-    btn.className = 'confirm-btn confirm-btn-green';
-    btn.textContent = '确认做多';
-  } else {
-    btn.className = 'confirm-btn confirm-btn-red';
-    btn.textContent = '确认做空';
-  }
-}
+            const n = 18;
+            const candleW = cw / n * 0.65;
+            const step = cw / n;
 
-// ── Confirm actions ───────────────────────────
-function confirmBorrow() {
-  const borrowable = document.getElementById('sol-borrowable').textContent;
-  showToast('✓ 借款成功 · ' + borrowable + ' 已到账', '#9945FF', 'rgba(153,69,255,.4)');
-  closeDetail();
-}
-function confirmPos() {
-  const dir = curDir === 'long' ? '做多' : '做空';
-  const color = curDir === 'long' ? '#0ECB81' : '#F6465D';
-  const border = curDir === 'long' ? 'rgba(14,203,129,.4)' : 'rgba(246,70,93,.4)';
-  showToast('✓ ' + curToken.toUpperCase() + ' ' + dir + ' 仓位已开立 · Tx confirmed', color, border);
-  closeDetail();
-}
+            // Generate candle data
+            let base = t.floorV > 0 ? t.floorV * 2 : parseFloat(t.price.replace('$','')) || 0.001;
+            let cur = base * 0.75;
+            const candles = [];
+            for (let i = 0; i < n; i++) {
+                const o = cur;
+                const chg2 = (Math.random() - 0.45) * 0.06 * base;
+                const c = Math.max(o + chg2, base * 0.05);
+                const h = Math.max(o, c) + Math.random() * 0.015 * base;
+                const l = Math.min(o, c) - Math.random() * 0.015 * base;
+                candles.push({o, c, h, l});
+                cur = c;
+            }
 
-// ── Drawer ────────────────────────────────────
-function openDrawer() {
-  document.getElementById('pos-drawer').classList.add('active');
-  document.getElementById('drawer-overlay').classList.add('active');
-}
-function closeDrawer() {
-  document.getElementById('pos-drawer').classList.remove('active');
-  document.getElementById('drawer-overlay').classList.remove('active');
-}
+            const maxP = Math.max(...candles.map(c => c.h));
+            const minP = t.floorV > 0 ? Math.min(t.floorV * 0.92, Math.min(...candles.map(c => c.l))) : Math.min(...candles.map(c => c.l));
+            const range = maxP - minP || 0.001;
+            const sy = p => mg.t + ch - ((p - minP) / range * ch);
 
-// Drawer tabs
-document.querySelectorAll('.drawer-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
-  });
-});
+            const ns = 'http://www.w3.org/2000/svg';
 
-// Meme-Fi subtabs
-document.querySelectorAll('.subtab').forEach(st => {
-  st.addEventListener('click', () => {
-    const pane = document.getElementById('pane-memefi');
-    pane.querySelectorAll('.subtab').forEach(s => s.classList.remove('active'));
-    pane.querySelectorAll('.subtab-pane').forEach(p => p.classList.remove('active'));
-    st.classList.add('active');
-    document.getElementById('subpane-' + st.dataset.subtab).classList.add('active');
-  });
-});
+            // Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = mg.t + (ch / 4) * i;
+                const line = document.createElementNS(ns, 'line');
+                line.setAttribute('x1', mg.l); line.setAttribute('x2', W - mg.r);
+                line.setAttribute('y1', y); line.setAttribute('y2', y);
+                line.setAttribute('stroke', 'var(--border-sub)'); line.setAttribute('stroke-width', '0.5');
+                svg.appendChild(line);
+                // Price label
+                const pval = maxP - (range / 4) * i;
+                const txt = document.createElementNS(ns, 'text');
+                txt.setAttribute('x', W - mg.r + 4);
+                txt.setAttribute('y', y + 4);
+                txt.setAttribute('fill', 'var(--t3)');
+                txt.setAttribute('font-size', '10');
+                txt.textContent = t.floorV > 0 ? pval.toFixed(2) : pval.toFixed(6);
+                svg.appendChild(txt);
+            }
 
-// ── Toast ─────────────────────────────────────
-function showToast(msg, color, border) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.color = color;
-  el.style.borderColor = border;
-  el.style.border = '1px solid ' + border;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2600);
-}
+            // Time labels
+            const times = ['10:00','11:00','12:00','13:00','14:00'];
+            times.forEach((ti, i) => {
+                const x = mg.l + (cw / 4) * i;
+                const txt = document.createElementNS(ns, 'text');
+                txt.setAttribute('x', x);
+                txt.setAttribute('y', H - 4);
+                txt.setAttribute('fill', 'var(--t3)');
+                txt.setAttribute('font-size', '10');
+                txt.textContent = ti;
+                svg.appendChild(txt);
+            });
 
-// ── Init ──────────────────────────────────────
-updateSolCalc();
-</script>
+            // Candles
+            candles.forEach((c, i) => {
+                const x = mg.l + i * step + step * 0.175;
+                const col = c.c >= c.o ? 'var(--green)' : 'var(--red)';
+
+                // Wick
+                const wick = document.createElementNS(ns, 'line');
+                wick.setAttribute('x1', x + candleW/2); wick.setAttribute('x2', x + candleW/2);
+                wick.setAttribute('y1', sy(c.h)); wick.setAttribute('y2', sy(c.l));
+                wick.setAttribute('stroke', col); wick.setAttribute('stroke-width', '1');
+                svg.appendChild(wick);
+
+                // Body
+                const body = document.createElementNS(ns, 'rect');
+                const by = sy(Math.max(c.o, c.c));
+                const bh = Math.max(1, Math.abs(sy(c.o) - sy(c.c)));
+                body.setAttribute('x', x);
+                body.setAttribute('y', by);
+                body.setAttribute('width', candleW);
+                body.setAttribute('height', bh);
+                body.setAttribute('fill', col);
+                svg.appendChild(body);
+            });
+
+            // Floor line for SOL
+            if (t.floorV > 0) {
+                const fy = sy(t.floorV);
+                const fl = document.createElementNS(ns, 'line');
+                fl.setAttribute('x1', mg.l); fl.setAttribute('x2', W - mg.r);
+                fl.setAttribute('y1', fy); fl.setAttribute('y2', fy);
+                fl.setAttribute('stroke', 'var(--yellow)');
+                fl.setAttribute('stroke-width', '1.5');
+                fl.setAttribute('stroke-dasharray', '5,3');
+                svg.appendChild(fl);
+
+                const flTxt = document.createElementNS(ns, 'text');
+                flTxt.setAttribute('x', mg.l + 4);
+                flTxt.setAttribute('y', fy - 5);
+                flTxt.setAttribute('fill', 'var(--yellow)');
+                flTxt.setAttribute('font-size', '10');
+                flTxt.setAttribute('font-weight', '600');
+                flTxt.textContent = 'Floor ' + t.floor;
+                svg.appendChild(flTxt);
+            }
+        }
+
+        function switchRightTab(tab, el) {
+            currentRightTab = tab;
+            document.querySelectorAll('#panelSol .panel-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#panelSol .panel-content').forEach(t => t.classList.remove('active'));
+            const map = {borrow:'tabBorrow', repay:'tabRepay', lever:'tabLever'};
+            const el2 = document.getElementById(map[tab]);
+            if (el2) el2.classList.add('active');
+            if (el) el.classList.add('active');
+        }
+
+        function setDirection(dir) {
+            currentDirection = dir;
+            document.getElementById('btnLong').classList.toggle('active', dir === 'long');
+            document.getElementById('btnShort').classList.toggle('active', dir === 'short');
+            updateBscCalc();
+        }
+
+        function updateBorrowCalc() {
+            if (!selected || selected.chain !== 'sol') return;
+            const qty = parseFloat(document.getElementById('collateralQty').value) || 0;
+            const canBorrow = selected.floorV * 0.8 * qty;
+            document.getElementById('borrowableAmount').textContent = canBorrow.toFixed(3) + ' SOL';
+        }
+
+        function updateBscCalc() {
+            if (!selected || selected.chain !== 'bsc') return;
+            const amt = parseFloat(document.getElementById('tradeAmount').value) || 0;
+            document.getElementById('estPosition').textContent = (amt * currentLeverage).toFixed(3) + ' BNB';
+            document.getElementById('estEntry').textContent = selected.price;
+            const dir = currentDirection === 'long' ? '做多' : '做空';
+            document.getElementById('actionBtn').textContent = `${dir} ${selected.name} ${currentLeverage}×`;
+        }
+
+        function adjustLever(d) {
+            const el = document.getElementById('leverCount');
+            let v = parseInt(el.textContent) + d;
+            v = Math.max(1, Math.min(10, v));
+            el.textContent = v;
+            document.getElementById('impliedLeverage').textContent = (1 + v * 0.72).toFixed(1) + '×';
+            document.getElementById('positionDelta').textContent = '+' + (1000 * v).toLocaleString() + ' tokens';
+        }
+
+        function renderLeverageButtons(t) {
+            const c = document.getElementById('leverageBtns');
+            c.innerHTML = '';
+            const levels = [1, 2, 3, t.maxLev].filter((v,i,a) => a.indexOf(v) === i && v >= 1);
+            levels.forEach(lv => {
+                const b = document.createElement('div');
+                b.className = 'leverage-btn' + (lv === currentLeverage ? ' active' : '');
+                b.textContent = lv + '×';
+                b.onclick = () => {
+                    currentLeverage = lv;
+                    document.querySelectorAll('.leverage-btn').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                    updateBscCalc();
+                };
+                c.appendChild(b);
+            });
+        }
+
+        function executeTrade() {
+            const dir = currentDirection === 'long' ? '做多' : '做空';
+            showToast(`✅ 开仓成功: ${dir} ${selected?.name} ${currentLeverage}×`);
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.display = 'block';
+            clearTimeout(window._tt);
+            window._tt = setTimeout(() => { el.style.display = 'none'; }, 2500);
+        }
+
+        function toggleStar(id, e) {
+            e.stopPropagation();
+            starred.has(id) ? starred.delete(id) : starred.add(id);
+            renderTable();
+        }
+
+        function switchSidebarTab(el) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function switchCenterTab(el) {
+            document.querySelectorAll('.center-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function switchTimePill(el) {
+            document.querySelectorAll('.time-pill').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function toggleChainPill(el) {
+            el.classList.toggle('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+        });
+    </script>
 </body>
 </html>
