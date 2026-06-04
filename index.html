@@ -340,7 +340,7 @@
     <div class="ib-sub">
       Meme-Fi 集成两条互补协议，首次为 Meme 玩家提供完整的链上策略工具箱——<strong>在 BSC 上可以做空，在 Solana 上可以锁定下行风险</strong>。<br><br>
       <strong>Likwid（BSC）</strong>：<a href="https://docs.likwid.fi/product/contract-address" target="_blank" style="color:#60a5fa;text-decoration:none;"><code>LikwidVault</code> + <code>LikwidMarginPosition</code></a> 合约已部署，支持最高 5× 隔离保证金杠杆，用户可对有 Vault 的 Meme Token 做多或借币做空。初期覆盖少量已毕业代币，验证需求后逐步扩大。<br><br>
-      <strong>Rise.rich（Solana）</strong>：核心机制是引入了<strong>可计算的价格底线</strong>——floor price = ATH × 50%，只涨不跌，由协议储备金刚性背书。这给狂野的 Meme 市场一个<strong>前所未有的下行风险锚点</strong>。用户可基于 floor 价进行无清算借贷（抵押代币借出 SOL/USDC），在不卖出持仓的前提下锁定浮盈；或通过 loop 循环加仓放大持仓。<br><br>
+      <strong>Rise.rich（Solana）</strong>：核心机制是引入了<strong>可计算的价格底线</strong>——floor price 只涨不跌，且只在协议验证<strong>全量赎回可覆盖</strong>（储备金 ≥ floor × 总供应量）时才上调，因此 floor 在任何时刻都是 100% 兑付背书的，即使完全踩踏最后一个卖家也能按 floor 成交。用户可基于 floor 价无清算借贷（抵押代币借出 SOL/USDC），在不卖出持仓的前提下锁定浮盈；或通过 loop 循环加仓——本质是以 floor 锚点为底做高倍多头。<br><br>
       <strong>关键洞察</strong>：两者组合让 Meme-Fi 成为一个策略生成层——BSC 链上可做空、可对冲；Solana 链上有 floor 锚点可借贷循环。Meme 用户第一次同时拥有双向策略工具。<strong>链上合约层无需自建</strong>，两个协议均已部署审计，前端集成即可（详见风险 #1）。<br><br>
       <details style="margin-top:12px;">
         <summary style="cursor:pointer;color:#60a5fa;font-size:13px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none;" onclick="this.parentElement.querySelector('iframe').src=this.parentElement.querySelector('iframe').src">
@@ -349,10 +349,19 @@
         </summary>
         <iframe src="likwid_analysis.html" style="width:100%;height:700px;border:none;border-radius:10px;margin-top:10px;display:block;" title="Likwid 协议分析" loading="lazy"></iframe>
       </details>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;color:#60a5fa;font-size:13px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none;">
+          <span style="font-size:10px;color:#3b82f6;transition:transform .2s;" class="rise-arrow">▶</span>
+          Rise.rich 协议深度分析报告（floor price 机制、偿付能力验证、loop 杠杆风险）
+        </summary>
+        <iframe src="rise_analysis.html" style="width:100%;height:700px;border:none;border-radius:10px;margin-top:10px;display:block;" title="Rise.rich 协议分析" loading="lazy"></iframe>
+      </details>
       <script>
-        document.querySelector('.analysis-arrow') && document.querySelector('details').addEventListener('toggle', function(e){
-          const arrow = this.querySelector('.analysis-arrow');
-          if(arrow) arrow.style.transform = this.open ? 'rotate(90deg)' : '';
+        document.querySelectorAll('details').forEach(function(det) {
+          det.addEventListener('toggle', function() {
+            var arrow = this.querySelector('.analysis-arrow, .rise-arrow');
+            if(arrow) arrow.style.transform = this.open ? 'rotate(90deg)' : '';
+          });
         });
       </script>
     </div>
